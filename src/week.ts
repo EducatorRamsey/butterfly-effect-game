@@ -2,6 +2,8 @@ import { DAYS, housingDue, type Choice, type Place, type State } from "./model";
 import type { Location } from "./story";
 import { balanceFirstWeek } from "./firstWeekBalance";
 import { secondWeekLocation, secondWeekPlans } from "./secondWeek";
+import { lifeStages, stageForDay } from "./timeline";
+import { chapterLocation } from "./chapters";
 import { dailyEvent } from "./neighborhood";
 export const dayPlans = [
   {
@@ -41,8 +43,16 @@ export const dayPlans = [
     focus: "Housing is due when you finish today. You can use savings.",
   },
   ...secondWeekPlans,
+  ...lifeStages.map((s) => ({
+    title: s.title,
+    note: s.context,
+    focus: s.focus,
+  })),
 ];
 export function dayLabel(s: State) {
+  const stage = stageForDay(s.day);
+  if (stage)
+    return `Chapter ${stage.chapter} · Age ${stage.age} · ${stage.season}`;
   return `Day ${s.day} of 14 · ${DAYS[(s.day - 1) % 7]}`;
 }
 export function busDelay(s: State, place: Place) {
@@ -81,6 +91,7 @@ const rest = (id: string) =>
     { wellbeing: 2 },
   );
 export function weekLocation(base: Location, s: State): Location {
+  if (s.day > 14) return chapterLocation(base, s);
   if (s.day === 1) return base;
   if (s.day > 7) {
     const next = secondWeekLocation(base, s),

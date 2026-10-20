@@ -1,6 +1,6 @@
 # The Butterfly Effect: The Cost of Every Choice
 
-A playable first chapter of a narrative economics game for high school seniors. Explore an original, illustrated Albuquerque neighborhood in Phaser 3, make commitments with limited time and resources, and reflect on the next-best alternatives you gave up.
+A playable seven-day opening chapter of a narrative economics game for high school seniors. Explore an original, illustrated Albuquerque neighborhood in Phaser 3, make commitments with limited time and resources, and reflect on the next-best alternatives you gave up.
 
 ![The playable Juniper neighborhood](docs/neighborhood.png)
 
@@ -31,18 +31,20 @@ If your workspace prevents writes to npm's default cache, add `--cache /tmp/butt
 - **Escape / ×:** close a dialogue. Closing without choosing makes no commitment.
 - **Listen / Replay / Stop:** browser narration, with five speed settings and optional automatic reading. Voice availability depends on the browser/OS.
 
-Walking costs five game minutes per fifteen seconds of movement. Reading dialogue uses no time. Each location offers one commitment for the day. All costs and requirements appear before choosing. Finish the day whenever you wish; the decision journal and reflection are available at any time. Your progress is automatically saved to this browser's local storage. New stories replace that save. Download the reflection before restarting if you want to keep it. Shared school devices should start a fresh story between students.
+Walking costs five game minutes per fifteen seconds of movement. Reading dialogue uses no time. Each location offers one commitment per day. Use **Week calendar** to see deadlines. After finishing a day, choose **Start the next day** in the journal. All costs and requirements appear before choosing. Finish the day whenever you wish; the decision journal and reflection are available at any time. Your progress is automatically saved to this browser's local storage. New stories replace that save. Download the reflection before restarting if you want to keep it. Shared school devices should start a fresh story between students.
 
 ## What this milestone includes
 
 - A title screen, four selectable starting interests, changeable pathway, accessible introduction, and five interactive locations.
 - Smooth accelerated movement, directional walking frames, building/plant collision, camera following, and keyboard, mouse, menu, and touch navigation.
-- Fifteen choices across family, work, education, transport, and housing. Time windows, affordability, training requirements, recurring-cost estimates, savings transfers, relationships, and skills have working rules.
-- Training opens a carpool; helping Elena reduces a later housing deposit. Long paid work can close the training enrollment window.
-- Visual-novel-style conversations with original stylized portraits; narration reads the complete panel, including all choices and disabled-choice explanations.
-- A reflection after three commitments and a downloadable end-of-chapter summary. This is an **age-18 snapshot**, not the planned four-year life simulation.
+- Seven playable days with new conversations across all five locations. A calendar, daily commitments, paid work, shared equipment, a clinic appointment, limited project hours, groceries, savings transfers, and a Friday housing bill make choices carry forward.
+- Training opens a carpool and a reserved Tuesday workshop. Helping Elena reduces the room deposit. Tuesday’s reduced bus service adds 90 minutes to each work or learning commitment for city-bus riders. A bike, carpool, or planned ride changes that trade-off. Time already spent cannot be recovered.
+- Short dialogue, clear time/money summaries, and optional **Tell me more** sections. Narration reads the current visible panel, including every choice and reason an option is unavailable. Expand a detail section before Listen to include it.
+- A reflection after three commitments, a second reflection at the end of the week, and a downloadable decision summary. This remains an **age-18 snapshot**, not the planned four-year life simulation. Existing first-chapter saves continue into the week without losing their resources or choices.
 
-Original scenery and character art are drawn in code. These are cohesive prototype assets designed to be replaceable; no commercial game assets are used. Monetary amounts and availability are illustrative classroom scenarios, not current financial or enrollment advice. Weekly income and monthly rent are forecasts, not accrued cash flows in the one-day chapter. No debt is incurred by the current choices.
+Original scenery and character art are drawn in code. These are cohesive prototype assets designed to be replaceable; no commercial game assets are used. Monetary amounts and availability are illustrative classroom scenarios, not current financial or enrollment advice. Work pays immediately after each completed shift; accepting a schedule does not pay wages. Expected weekly income is a planning estimate. The housing deposit is separate from Friday’s bill: $125 for the shared room (a simplified four-week share of $500/month), or a $40 household contribution when living with family. Friday’s bill uses spending money, then savings. Any remaining amount becomes an unpaid housing balance, without interest or a failure score. The bill is charged once, including after reloads.
+
+Temporary family/shared rides apply only to Tuesday; the previous travel plan returns the next morning. Grocery spending is a selected decision, not a hidden recurring deduction. This milestone does not simulate all living expenses, formal loans, or the consequences of a long-term overdue balance.
 
 ## Automated browser tests
 
@@ -54,7 +56,7 @@ npm test
 
 The config uses `/usr/bin/chromium` when installed, and otherwise uses Playwright’s downloaded Chromium. You can optionally set `CHROMIUM_PATH` to another Chrome/Chromium executable.
 
-The suite runs the actual game at 1440×1000 and Chromebook-sized 1366×768 viewports. It covers new/continued/restarted stories, all locations, linked decisions and arithmetic, deadlines, affordability, narration controls, speed, map navigation, movement, keyboard dialogue, reflection, ending, responsive layout, and browser/asset errors. See [validation notes](docs/VALIDATION.md) for the current run and limits.
+The suite runs the actual game at 1440×1000 and Chromebook-sized 1366×768 viewports. It covers new/continued/restarted stories, all locations, linked decisions and arithmetic, deadlines, affordability, narration controls, speed, map navigation, movement, keyboard dialogue, reflection, ending, all seven days, legacy-save continuation, Friday settlement and shortfall handling, responsive layout, and browser/asset errors. See [validation notes](docs/VALIDATION.md) for the current run and limits.
 
 ## Publish on GitHub Pages
 

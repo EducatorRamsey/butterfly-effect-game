@@ -1,4 +1,4 @@
-import type { Choice, Place, State } from "./model";
+import { todayDecision, type Choice, type Place, type State } from "./model";
 export interface Location {
   id: Place;
   name: string;
@@ -26,7 +26,7 @@ export const locations: Location[] = [
     y: 285,
     w: 220,
     h: 150,
-    text: "We have one shared laptop, and I need help with a delivery today. You also have your own plans. What can we make room for?",
+    text: "I need help with a delivery. You could use our one laptop for a scholarship instead.",
     scarcity: "Time & shared equipment · Choose one commitment today.",
     choices: [
       {
@@ -78,7 +78,7 @@ export const locations: Location[] = [
     y: 285,
     w: 250,
     h: 150,
-    text: "A coworker is out today. I can offer a longer shift, or a short paid orientation. The long shift overlaps with the training center’s enrollment hours.",
+    text: "We have a long shift or a short orientation. The long shift may leave no time to enroll in training.",
     scarcity: "Time · Paid work competes with enrollment before 2 PM.",
     choices: [
       {
@@ -131,7 +131,7 @@ export const locations: Location[] = [
     y: 285,
     w: 270,
     h: 150,
-    text: "There is one funded seat left in our introductory trades workshop. Enrollment closes at 2 PM. College advising is free, and you can change direction later.",
+    text: "One funded workshop seat is left. Enrollment closes at 2 PM; college advising stays open.",
     scarcity:
       "Limited seats & equipment · A funded seat cannot serve everyone.",
     choices: [
@@ -184,7 +184,7 @@ export const locations: Location[] = [
     y: 740,
     w: 240,
     h: 100,
-    text: "The bus fare is free on this city route, but reduced evening service means a longer wait. We still pay with our time. How will you get around this week?",
+    text: "The bus fare is free. Fewer buses mean more waiting—how will you travel?",
     scarcity: "Service & time · Free fare does not mean unlimited access.",
     choices: [
       {
@@ -235,13 +235,13 @@ export const locations: Location[] = [
     y: 705,
     w: 280,
     h: 170,
-    text: "Only one affordable shared room is open. The deposit is $300 and your share would be $500 each month. Moving out buys privacy, but brings new commitments.",
+    text: "One shared room is open. It needs a $300 deposit, then a weekly payment.",
     scarcity: "Housing availability · One room, several applicants.",
     choices: [
       {
         id: "apartment-room",
         label: "Apply for the shared room",
-        detail: "1 hour · $300 deposit · $500/month",
+        detail: "1 hour · $300 deposit · $125 due Friday",
         time: 60,
         money: -300,
         rent: 500,
@@ -285,7 +285,8 @@ export function choicesFor(location: Location, s: State): Choice[] {
       ? {
           ...c,
           money: -200,
-          detail: "1 hour · $200 deposit after Elena’s $100 help · $500/month",
+          detail:
+            "1 hour · $200 deposit after Elena’s $100 help · $125 due Friday",
           result:
             c.result +
             " Elena contributes $100 because you helped with the delivery.",
@@ -294,11 +295,10 @@ export function choicesFor(location: Location, s: State): Choice[] {
   );
 }
 export function followup(location: Location, s: State): string {
+  if (s.day > 1) return todayDecision(s, location.id)?.result || location.text;
   if (location.id === "work" && s.flags.includes("training"))
     return "You mention the workshop. Rivera offers to discuss a schedule around your training next week. Your options are beginning to connect.";
   if (location.id === "home" && s.flags.includes("shift"))
     return "Elena knows the shift was important. She still wishes there had been more time together. Both needs mattered.";
-  return (
-    s.decisions.find((d) => d.place === location.id)?.result || location.text
-  );
+  return todayDecision(s, location.id)?.result || location.text;
 }

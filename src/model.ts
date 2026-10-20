@@ -1,3 +1,5 @@
+import { LAST_DAY, stageForDay } from "./timeline";
+import { startingLife, settleMonth } from "./finance";
 export type Place =
   | "home"
   | "work"
@@ -23,7 +25,40 @@ export interface LedgerEntry {
   savings: number;
   debt: number;
 }
+export interface BudgetMonth {
+  day: number;
+  age: number;
+  income: number;
+  rent: number;
+  essentials: number;
+  tuition: number;
+  payment: number;
+  interest: number;
+  cashAfter: number;
+  savingsUsed: number;
+  unpaid: number;
+}
+export interface LifeProfile {
+  familyContribution?: number;
+  variableIncome?: boolean;
+  monthlyIncome: number;
+  essentials: number;
+  tuition: number;
+  payment: number;
+  study: number;
+  credential: string;
+  history: BudgetMonth[];
+}
+export interface FinalReflection {
+  chosen: number;
+  scarcity: string;
+  alternative: string;
+  context: string;
+}
 export interface State {
+  loan: number;
+  life: LifeProfile | null;
+  finalReflection?: FinalReflection;
   seed: number;
   meals: number;
   parts: number;
@@ -59,6 +94,8 @@ export interface State {
 export const SAVE_KEY = "butterfly-effect-v1";
 export function initial(path: Path): State {
   return {
+    loan: 0,
+    life: null,
     seed: Math.floor(Math.random() * 1000000),
     meals: 0,
     parts: 0,
@@ -127,8 +164,19 @@ export interface Choice {
   minJordan?: number;
   minSkill?: number;
   requiresLabel?: string;
+  life?: Partial<Omit<LifeProfile, "history">>;
+  path?: Path;
+  loan?: number;
+  loanPaid?: number;
+  minStudy?: number;
+  main?: boolean;
 }
 export function unavailable(s: State, c: Choice): string | null {
+  const stage = stageForDay(s.day);
+  if (stage && !todayDecision(s, stage.required) && !c.main)
+    return `Make the main decision at ${stage.required === "college" ? "Mesa Training Center" : stage.required === "work" ? "Rivera Market" : stage.required === "apartment" ? "Juniper Apartments" : stage.required === "home" ? "Family home" : stage.required === "bus" ? "the bus stop" : "the bosque"} first. Travel time is reserved until then.`;
+  if (c.minStudy && (s.life?.study || 0) < c.minStudy)
+    return `Needs ${c.minStudy} learning milestones; you have ${s.life?.study || 0}.`;
   if (c.minAlex && s.alex < c.minAlex)
     return `Spend time with Alex first (connection ${s.alex}/${c.minAlex}).`;
   if (c.minJordan && s.jordan < c.minJordan)
@@ -155,6 +203,9 @@ export function decide(s: State, place: Place, c: Choice): State {
   return {
     ...s,
     minutes: s.minutes + c.time,
+    path: c.path ?? s.path,
+    loan: s.loan + (c.loan || 0) - (c.loanPaid || 0),
+    life: s.life ? { ...s.life, ...c.life } : null,
     meals: s.meals + (c.meals || 0) - (c.mealCost || 0),
     parts: s.parts + (c.parts || 0) - (c.partsCost || 0),
     wellbeing: Math.max(0, Math.min(5, s.wellbeing + (c.wellbeing || 0))),
@@ -242,6 +293,9 @@ export function load(): State | null {
     )
       return null;
     // Preserve graduation-weekend saves; no student loses their earlier choices.
+    s.loan ??= 0;
+    s.life ??= null;
+    if (!Number.isFinite(s.loan) || s.loan < 0) return null;
     s.seed ??= 104729;
     s.meals ??= 0;
     s.parts ??= 0;
@@ -260,7 +314,7 @@ export function load(): State | null {
       ) ||
       !Array.isArray(s.calendarChecked) ||
       !s.calendarChecked.every(
-        (d: number) => Number.isInteger(d) && d >= 1 && d <= 14,
+        (d: number) => Number.isInteger(d) && d >= 1 && d <= LAST_DAY,
       )
     )
       return null;
@@ -270,7 +324,7 @@ export function load(): State | null {
     if (
       !Number.isInteger(s.day) ||
       s.day < 1 ||
-      s.day > 14 ||
+      s.day > LAST_DAY ||
       typeof s.completed !== "boolean" ||
       !Array.isArray(s.ledger)
     )
@@ -318,7 +372,59 @@ export function load(): State | null {
       )
     )
       return null;
-    if (s.day === 7 && s.completed) s.completed = false;
+    if (s.day > 14) {
+      if (
+        !s.life ||
+        !["monthlyIncome", "essentials", "tuition", "payment", "study"].every(
+          (k) => Number.isFinite(s.life[k]) && s.life[k] >= 0,
+        ) ||
+        (s.life.familyContribution !== undefined &&
+          (!Number.isFinite(s.life.familyContribution) ||
+            s.life.familyContribution < 0)) ||
+        typeof s.life.credential !== "string" ||
+        !Array.isArray(s.life.history)
+      )
+        return null;
+      if (
+        !s.life.history.every(
+          (m: BudgetMonth) =>
+            m &&
+            Number.isInteger(m.day) &&
+            m.day >= 15 &&
+            m.day <= s.day &&
+            [
+              "age",
+              "income",
+              "rent",
+              "essentials",
+              "tuition",
+              "payment",
+              "interest",
+              "cashAfter",
+              "savingsUsed",
+              "unpaid",
+            ].every(
+              (k) =>
+                Number.isFinite((m as unknown as Record<string, number>)[k]) &&
+                (m as unknown as Record<string, number>)[k] >= 0,
+            ),
+        )
+      )
+        return null;
+    }
+    if (
+      s.finalReflection &&
+      (!Number.isInteger(s.finalReflection.chosen) ||
+        s.finalReflection.chosen < 0 ||
+        s.finalReflection.chosen >= s.decisions.length ||
+        !["scarcity", "alternative", "context"].every(
+          (k) =>
+            typeof s.finalReflection[k] === "string" &&
+            s.finalReflection[k].length <= 600,
+        ))
+    )
+      return null;
+    if ((s.day === 7 || s.day === 14) && s.completed) s.completed = false;
     return s as State;
   } catch {
     return null;
@@ -349,7 +455,10 @@ export function housingDue(s: State) {
 }
 export function finishDay(s: State): State {
   if (s.ended) return s;
-  const next = { ...s, ended: true, completed: s.day === 14 };
+  const stage = stageForDay(s.day);
+  if (stage && !todayDecision(s, stage.required)) return s;
+  const next = { ...s, ended: true, completed: s.day === LAST_DAY };
+  if (stage) return settleMonth(next);
   if (s.day % 7 !== 0) return next;
   // Weekly housing is charged once. Any shortfall is an unpaid bill, not a fabricated loan.
   const due = housingDue(s),
@@ -375,11 +484,16 @@ export function finishDay(s: State): State {
   };
 }
 export function nextDay(s: State): State {
-  if (!s.ended || s.completed || s.day >= 14) return s;
+  if (!s.ended || s.completed || s.day >= LAST_DAY) return s;
   return {
     ...s,
     day: s.day + 1,
-    transport: s.returnTransport ?? s.transport,
+    life: s.day === 14 ? startingLife(s) : s.life,
+    meals: s.day >= 14 ? 0 : s.meals,
+    transport:
+      s.day === 14 && s.transport === "Borrowed bicycle"
+        ? "City bus"
+        : (s.returnTransport ?? s.transport),
     returnTransport: undefined,
     ended: false,
     minutes: 540,

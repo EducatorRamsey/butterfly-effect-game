@@ -1,35 +1,35 @@
-# Validation of the two-week expansion (v0.3)
+# Version 1.0 validation
 
-Tested with Node 24.19.0, npm 11.9.0, and system Chromium through Playwright.
+The game now contains the full requested narrative arc: the two-week opening and three later chapters, ending at age 22. Validation used Node 24.19.0, npm 11.9.0, and Chromium through Playwright.
 
-- `npm run build`: TypeScript and Vite production build passed.
-- `npm test`: **38 passed**, no skipped tests, across desktop 1440×1000 and Chromebook 1366×768.
-- Production smoke: served built `dist/`, selected Trades, read the corrected introduction, visited all five characters, interacted with the lowrider, verified its saved outcome, and opened the calendar bulletin. No page exceptions or HTTP errors.
-- Visual review: inspected game-canvas captures at the home, training center, and apartments, which together show all five characters. Names sit to the left of the player and characters; their heads and bodies are unobstructed.
+## Completed checks
 
-## Classroom-feedback coverage
+- TypeScript checking and Vite production build passed.
+- The full 54-test desktop/Chromebook regression run passed with no skipped tests.
+- A subsequent focused run passed all 18 later-chapter checks after consistency refinements, including two new viewport-specific checks for changing direction and a higher household contribution. Together, these runs cover 56 distinct passing browser scenarios. No tests were skipped.
+- A production-browser smoke run used built `dist/` assets, continued an opening save through all nine later moments, completed a training credential, financed a car, settled nine budgets, and reached the age-22 snapshot. The ending had a $630 remaining car-loan balance. There were no uncaught JavaScript errors or failed asset requests.
+- The final snapshot was visually inspected at 1366×900. It shows learning, housing, transport, finances, relationships, and the chosen opportunity cost in the accessible dialogue interface.
 
-Eight new browser scenarios run at both viewport sizes:
+## Complete-game coverage
 
-1. Day 2's three-hour work meeting blocks the longer advising appointment before its deadline. The library alternative stays open. The calendar has fourteen days, a current bulletin, and an unread-update indicator that clears when checked.
-2. The lowrider, mural, and bosque have functional decisions. Their outcomes save; reloading preserves the same seeded daily bulletin.
-3. A bike remains available to buy after the route change. Time with Alex raises a separate connection value and unlocks a bike loan at 2.
-4. Groceries cost $20 for three meals in one hour. Community food pickup takes two hours for one meal, without a cash cost. A later packed-meal shift consumes one meal and pays $8 more than buying lunch.
-5. A completed older seven-day save retains funds and its prior bill, advances through days 8–14, and gets exactly one new Friday charge. Reloading the ending does not charge again.
-6. Week-two housing opens a quiet-space learning benefit; supervised practice consumes a part; a later repair job is unavailable without equipment despite time remaining; Trades can submit an apprenticeship application.
-7. Different days show different reflection questions. A smaller room changes the monthly rent to $350 and the weekly bill to $88.
-8. Mouse events from an HTML control cannot activate a world building underneath their coordinates. This guards a real bug uncovered in the first Chromebook pass.
+`tests/life.spec.ts` exercises each of College, Employment, Trades, and Independent work from a fresh story, through the opening and all three later chapters, to age 22. Tests verify the correct pathway-specific credential/portfolio, nine monthly settlements, retained earlier choices, final narration text, selecting an important decision, writing a reflection, downloading the actual snapshot contents, and reloading the final save without duplicating settlement.
 
-## Existing-game regressions
+Boundary scenarios cover:
 
-The original eleven scenarios still run at both sizes: all five locations, exact resource changes, training and family callbacks, movement and collision, map and held directional controls, narration text/speed, modal keyboard access, affordability, enrollment deadlines, first-week progression, midweek save/continue, legacy day-1 saves, bus-service conflicts, and low-funds housing settlement.
+- A completed older two-week save continuing without losing cash, with a required main decision and reserved exploration time.
+- A $600 college transition loan: $3 interest, a $50 payment, a $553 remaining loan balance, and cash matching the preview. Reloading does not reapply the month.
+- An unaffordable modeled month: $100 spending and $50 reserves are used, $1,150 becomes unpaid bills, and a $1,200 loan accrues $6 interest without inventing an unaffordable payment.
+- A player with no cash or learning milestones still reaching a complete age-22 outcome through work/community experience. Reflection HTML is escaped on reload, and restarting remains available.
+- A higher family contribution preserving the actual home, and a paid bridge course updating the direction while retaining learning experience.
 
-Every scenario monitors uncaught JavaScript errors and HTTP errors. Test names and exact expectations are in `tests/game.spec.ts`, `tests/week.spec.ts`, and `tests/expansion.spec.ts`.
+The earlier 38 browser scenarios retain coverage of movement, collisions, nearby and map interactions, all five character locations, three discoveries, seeded bulletins, cash/food/equipment scarcity, friendship support, quiet housing, narration rates, modal keyboard focus, the first two weeks, and legacy day-1/day-7 saves.
+
+Every browser scenario checks for uncaught JavaScript errors and HTTP errors.
 
 ## Limits
 
-Tests use real Chromium at representative viewport sizes, not physical Chromebooks or mobile devices. Held pointer input tests the directional controls. Audible narration, school browser policies, assistive technology, and student reading/attention needs need classroom review.
+These checks run real Chromium at desktop 1440×1000 and Chromebook 1366×768 viewports, not physical school devices. Native touch hardware, audible voice quality, assistive technology, and physical printing were not tested. The print action and print layout are implemented; download contents and persistent reflection text were browser-tested.
 
-The new code has not yet run through GitHub Actions or live Pages deployment. Those occur separately after pushing and merging. Random events are saved-seed variations with disclosed consequences; they never remove money automatically. Housing, wages, and service conditions are illustrative classroom scenarios.
+The full regression result is local. GitHub Actions and publication to the live Pages URL are separate operations after pushing and merging. The 25–35-minute classroom session is a design target, not a measured class result.
 
-This remains an age-18, two-week chapter with outdoor exploration. Playable interiors, a full age-18-to-22 simulation, and long-term loan/overdue-bill consequences remain future work. Old saves retain existing choices and finances; new supplies default to zero, without retroactively changing their old outcomes.
+The economy models selected months, not every intervening month between ages 18 and 22. Amounts are illustrative. The four-chapter story and final ending are complete; refined art, explorable interiors, translations, and offline caching are optional enhancements.

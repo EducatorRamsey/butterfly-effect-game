@@ -1142,3 +1142,67 @@ dialog .primary {
   overflow-y: auto;
   padding-right: 8px;
 }
+#snapshot-choice {
+  width: 100%;
+  padding: 10px;
+  background: #fffdf6;
+  color: #2c5149;
+  border: 1px solid #b4c5ad;
+  border-radius: 5px;
+}
+dialog textarea {
+  display: block;
+  width: 100%;
+  margin: 8px 0 16px;
+  padding: 12px;
+  line-height: 1.6;
+  border: 1px solid #b5c6ad;
+  border-radius: 5px;
+  background: #fffef9;
+  color: #243e43;
+  font-size: 15px;
+}
+dialog label {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 600;
+}
+.budget-panel p {
+  font-size: 14px;
+}
+.budget-panel .fine {
+  font-size: 12px;
+}
+@media print {
+  body > * {
+    visibility: hidden;
+  }
+  dialog[data-kind="life-snapshot"],
+  dialog[data-kind="life-snapshot"] * {
+    visibility: visible;
+  }
+  dialog[data-kind="life-snapshot"] {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+    border: 0;
+  }
+  dialog[data-kind="life-snapshot"] button,
+  .panel-narration,
+  .close {
+    display: none !important;
+  }
+  dialog[data-kind="life-snapshot"] details {
+    display: block;
+  }
+  dialog[data-kind="life-snapshot"] textarea {
+    break-inside: avoid;
+  }
+  dialog::backdrop {
+    background: white;
+  }
+}

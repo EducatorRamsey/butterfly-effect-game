@@ -1,47 +1,47 @@
-# Extending the game
+# Architecture
 
-`src/world.ts` owns the Phaser scene: locally drawn scenery, static collision bodies, directional character textures, acceleration, camera, nearby prompts, and pointer/touch-facing hooks. Scene events pass through a small hook interface; economics does not depend on Phaser. `Neighborhood.visit` provides direct-to-entrance travel for pointer and accessible-menu use.
+The game separates Phaser exploration, the accessible DOM interface, story data, economic rules, financial settlement, saving, narration, and the final reflection.
 
-`src/model.ts` owns typed resources, initial pathway differences, affordability/time/requirement rules, immutable decision consequences, clock formatting, and versioned local-storage persistence. It also owns daily choice scoping, the seven-day calendar, idempotent end-of-week housing settlement, daily advancement, and cash/savings/unpaid-balance ledger entries. Choice application rejects a second commitment at the same location on the same day; another day can offer new choices. Spending and savings are separate; transfers never create wealth.
+## Modules
 
-`src/story.ts` is the graduation-day content catalog. Each location contains a speaker, short conversation, scarcity cue, and typed choices. Add or edit conversations here. A choice declares its time, cash change, next-best alternative, result, and optional skills, relationship, housing, transportation, income, rent, requirement, or deadline. Negative `money` means a cash cost. `choicesFor` demonstrates conditional content (Elena's housing help); `followup` provides callbacks to prior decisions.
+- `world.ts`: original drawn scenery and characters, collisions, camera, directional animation, prompts, and mouse/keyboard/touch-facing hooks. World pointer events require an actual canvas target so HTML buttons cannot activate buildings underneath.
+- `main.ts`: title and introduction, accessible modal conversations, dashboard, calendar/timeline, optional exploration, chapter transitions, journal, and narration controls. The same saved state feeds both the canvas and HTML alternatives.
+- `model.ts`: typed state and choices, availability rules, immutable choice application, persistence validation, old-save migration, and one-time day/moment completion.
+- `story.ts`, `week.ts`, `firstWeekBalance.ts`, `secondWeek.ts`: graduation and the two-week opening. Choices define visible costs, resource effects, requirements, and a next-best alternative.
+- `neighborhood.ts`: discovery sites, seeded bulletins, choice helpers, and opening reflections.
+- `timeline.ts`: nine later moments, chapter/age/season labels, main locations, and reflection questions. Days 15–23 are internal IDs for time-jump moments, not consecutive calendar days.
+- `chapters.ts`: all later-chapter conversations and decisions, including recurring-character callbacks and four work/learning directions. Each moment has a required main decision and optional activities.
+- `finance.ts`: representative monthly forecasts and settlement. It never advances hidden months.
+- `snapshot.ts`: age-22 outcome, significant-decision selection, personal reflection, escaped HTML, and plain-text export.
+- `narration.ts`: browser speech synthesis, cancellation, complete-panel text, and rate.
+- `style.css`: visual system, responsive layout, reduced motion, and print layout.
 
-`src/week.ts` supplies days 2–7 through `weekLocation(base, state)`. It reuses the existing five locations and speakers, resolves prior-choice callbacks, and includes Tuesday’s 90-minute bus penalty in the time shown before committing to work or learning. Scene travel still uses the normal five-minute visit cost.
+## Progression and time
 
-`src/main.ts` coordinates the state and accessible DOM screens, dashboard, modal dialogue, reflection, journal, save notifications, touch input, and startup. Browser-native `<dialog>` provides modal keyboard containment and Escape support. Narration follows the visible panel's complete text. `src/narration.ts` isolates speech synthesis, replay, cancellation, and speed. `src/style.css` contains the responsive visual system and reduced-motion treatment.
+The first fourteen days remain chapter 1. Chapters 2, 3, and 4 each contain three moments across ages 19–22. `stageForDay` supplies the current label and required location. `finishDay` rejects a later moment without its main decision. Optional choices are unavailable until that decision is made. Travel before it is free in time so wandering cannot consume an essential appointment and deadlock the story. After the main decision, time costs and bus commute penalties apply normally.
 
-## Adding a scenario
+Only the final age-22 moment sets `completed`. A completed older day-7 or day-14 save becomes an ended opening segment that can continue. At the first time jump, fresh food is cleared and Alex's opening bike loan is returned; durable skills, relationships, money, savings, parts, and choices remain.
 
-1. Add a graduation-day choice to `story.ts` or a later-day scenario to `week.ts`, with a concrete resource consequence and a clear next-best alternative. Use one or two sentences for dialogue; keep essential costs in the choice detail and extra context behind disclosure controls.
-2. Add a typed effect in `Choice` and `decide` if needed. Avoid encoding financial consequences only in text.
-3. For later callbacks, add a flag in the earlier choice, and resolve the later variation in `choicesFor` or `followup`.
-4. Add a Playwright test exercising the actual buttons, saved resources, and relevant followup. Cover both affordable and unavailable conditions.
-5. Run `npm run build` and `npm test`. Recheck the whole chapter before extending the simulation.
+## Finances
 
-## Design boundaries
+Opening housing is settled once on days 7 and 14. Later moments branch to `settleMonth` before weekly logic; no month receives both a weekly and monthly housing charge.
 
-No student identity is requested. The single browser save is local, not synced, and can be unavailable under browser storage restrictions. The UI reports a save failure rather than falsely promising persistence. Story strings are developer-authored static data, not user HTML. Future free-text reflections must use text nodes or escaping before display.
+`LifeProfile` holds monthly take-home income, essentials, tuition, planned loan payment, learning milestones, credential/portfolio, and the budget history. `forecast` computes variable income from the saved seed, housing, 0.5% monthly loan interest, an affordable actual loan payment, reserve use, and any unpaid bills. `settleMonth` applies exactly that forecast, appends the money ledger, and stores the period in history. An already-ended moment returns unchanged state, including after a reload.
 
-Current portraits and world illustrations are original procedural prototype art. Replace draw calls/textures without changing economic rules. Use licensed assets and record attribution if assets are added.
+`loan` tracks formal illustrative loan principal plus modeled interest. `debt` tracks unpaid bills. Loan payments can only use funds left after basic expenses; a cash shortfall never creates a fictional payment. A car loan directly finances the car; a college transition loan adds cash and a matching loan balance. Savings transfers move existing cash. Intervening months are neither charged nor credited, and the UI states this before transitions and in the final snapshot.
 
-The seven-day chapter has no long-term calendar simulation, medical treatment system, inventory of usable tools, or loan contracts. The clinic scenario concerns appointment time. A tool-bench scenario concerns shared access rather than owned items. Skills and relationships are simple tracked counters, not student grades. Accessibility is supported through HTML alternatives, but teacher/student testing with assistive technology remains necessary before broad classroom release.
+Education milestones represent learning across the time jumps. Completing a credential needs earlier preparation; a free work/community-experience alternative always remains. Every required moment has an attainable option for a player with no cash, no credential, or little social support.
 
-## Save compatibility and weekly money
+## Persistence and privacy
 
-The storage key remains `butterfly-effect-v1`. Legacy saves default to day 1, an empty new ledger, and an unfinished week. Old decision records without `day` count as day-1 decisions. An old completed first chapter can advance to day 2. The game preserves its money, savings, flags, and choices rather than trying to reconstruct cash flows from prose. New records include both day and choice ID.
+The key remains `butterfly-effect-v1`; migrations fill new fields without reconstructing historical finances. JSON values are validated before use. Reflection fields are limited to 600 characters, escaped on HTML rendering, and exported as plain text. They remain on the local device. No name, account, analytics, database, or external API is required.
 
-`finishDay` returns unchanged state when already ended. On day 7 it applies housing once: cash first, savings second, then the gap as an unpaid bill in `debt`. `nextDay` advances only ended days 1–6, resets the daily clock and position, and retains decisions and money. Temporary Tuesday rides restore the previous transport mode the next morning.
+`calendarChecked` records read notices. The opening seed fixes daily events on reload, and later independent-work income uses the same seed for stable previews. Print and download are explicit local actions.
 
-Daily wages are credited in `decide`, not at calendar advancement. `incomeSet` updates a schedule estimate without adding cash. The ledger labels every decision and the single weekly settlement. Savings transfers record opposite cash/savings effects. No interest or loan origination occurs in this chapter.
+## Adding content safely
 
-## Two-week expansion (v0.3)
-
-`firstWeekBalance.ts` rebalances the existing first-week content without duplicating its rendering logic. Day 2 has a three-hour work meeting and a 2 PM advising deadline. Food choices differ in quantity and waiting time. Housing scenes cover quiet space, viewing access, and sharing maintenance responsibilities. Bike purchases stay available after the initial transport decision.
-
-`secondWeek.ts` defines days 8–14. It resolves earlier skill, housing, relationship, food, and equipment decisions into later opportunities. `neighborhood.ts` owns the three discovery sites, seeded daily bulletins, shared choice factory, and fourteen distinct reflection prompts. `world.ts` renders and detects both the five original locations and the three discoveries; the HTML map provides equivalent access.
-
-The save still uses the original key. New fields default safely for old saves: meals, parts, wellbeing, Alex connection, Jordan trust, calendar-read days, and a stable event seed. A completed day-7 save becomes an ended first week that can advance; its money and payment ledger are retained. `finishDay` settles housing on days 7 and 14, and only day 14 completes the current game. Each ledger entry records its actual day. Friday housing is `ceil(monthly rent / 4)` for a room or $40 with family; the smaller room is $88/week.
-
-Food and parts are usable resources, not decorative counters. A packed meal saves $8 on an eligible work shift; repair practice or work consumes a part. An Alex connection of 2 permits a bike loan. Jordan trust opens shared housing and coordination options. Quiet housing saves 30 minutes on week-two learning; wellbeing of at least 4 saves another 15 minutes. The smaller room trades away the quiet-space saving. These supports are illustrative game rules, not measures of a student's worth.
-
-Daily bulletins are derived from the saved seed and day. New stories vary; revisiting or reloading cannot reroll a donated part, paint availability, or weather notice. No money is randomly removed. Weather affects the trail and week-two city-bus commitments; costs appear before choosing. Future calendar entries list known deadlines; the current bulletin reveals that morning's change.
+1. Add content to the appropriate data module. Keep speech short and all costs visible before choosing.
+2. Express effects in typed `Choice` fields, not only in narration. Keep a free attainable main option and explain the next-best alternative.
+3. For later callbacks, inspect existing flags, skills, relationships, or budget values rather than assuming every player followed one path.
+4. Add an actual browser scenario for the new behavior, including an unavailable or low-resource case when relevant.
+5. Run the production build and browser regressions, including a fresh full-game route and old-save continuation.

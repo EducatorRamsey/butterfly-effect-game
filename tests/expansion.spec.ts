@@ -242,7 +242,7 @@ test("completed old week saves enter week 2, and both weekly bills settle only o
   ).toBeVisible();
   let s = await read(page);
   expect(s.money).toBe(200);
-  expect(s.completed).toBe(true);
+  expect(s.completed).toBe(false);
   expect(
     s.ledger.filter(
       (e: { label: string }) => e.label === "Weekly household contribution",
@@ -324,14 +324,12 @@ test("HTML controls cannot activate a building underneath their mouse coordinate
 }) => {
   await start(page);
   const bounds = (await page.locator("canvas").boundingBox())!;
-  await page
-    .locator("#finish")
-    .dispatchEvent("mousedown", {
-      button: 0,
-      buttons: 1,
-      clientX: bounds.x + 285,
-      clientY: bounds.y + 100,
-    });
+  await page.locator("#finish").dispatchEvent("mousedown", {
+    button: 0,
+    buttons: 1,
+    clientX: bounds.x + 285,
+    clientY: bounds.y + 100,
+  });
   await page.waitForTimeout(200);
   await expect(page.locator("dialog")).not.toBeVisible();
   await page.locator("#finish").click();

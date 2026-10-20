@@ -1,3 +1,4 @@
+import { stageForDay } from "./timeline";
 import type { Choice, State } from "./model";
 import type { Location } from "./story";
 export const discoveries: Location[] = [
@@ -203,6 +204,8 @@ export function discoveryLocation(base: Location, s: State): Location {
   };
 }
 export function reflectionQuestion(day: number) {
+  const stage = stageForDay(day);
+  if (stage) return stage.reflection;
   return [
     "Who helped you see an option you had not noticed?",
     "What did you commit to today, and what will it leave out tomorrow?",

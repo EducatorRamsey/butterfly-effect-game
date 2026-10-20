@@ -1,11 +1,21 @@
-# From graduation weekend to age 22
+# Delivered game and optional enhancements
 
-The playable opening now covers two weeks after graduation. It includes daily schedules, actual wages from work, a weekly housing settlement, shared-tool and clinic conflicts, a reduced-bus-service event, earlier-choice callbacks, daily reflections and three checkpoints, and lighter reading. Continue classroom testing before expanding the content volume.
+## Complete in version 1.0
 
-1. **Classroom polish:** test reading load with students and screen-reader users; add human-reviewed Spanish narration/text, remappable keys, sound preferences, and refined character/interior artwork. Introduce classroom pause/reset and an explicit local-save deletion control.
-2. **Deepen the first week:** playable interiors, a usable tool inventory, two-part scholarship applications, richer roommate negotiation, and more travel options. The fourteen-day calendar, paid work, equipment inventory, clinic conflict, bus event, daily pop-ups, Albuquerque discoveries, friendship support, changing housing options, and three reflection checkpoints are implemented. Add deterministic browser tests before each new branch.
-3. **Months and changing directions:** calendar progression, actual recurring rent/income payments, tuition and debt contracts, education progress, entrepreneurship demand/costs, interview conflicts, medical appointments, vehicle repairs, and structural events. Balance opportunities across college, employment, trades, and independent work without prescribing one ideal path.
-4. **Ages 18–22:** four connected chapters with approximately four spaced economics reflections, relationships that remember commitments, and a personalized Life Snapshot at 22. Aim for 25–35 minutes total rather than stretching the opening week. Have teachers review the distinction between a chosen next-best alternative and every possible option forgone.
-5. **Release readiness:** Chromebook performance budgets, broader touch/browser coverage, accessibility audit, save migrations, offline caching, content licensing review, teacher guide, and privacy review. Avoid recording student information or adding analytics by default.
+- A playable four-chapter campaign from graduation at 18 to a personalized outcome at 22.
+- The two-week opening, followed by nine important moments across the remaining three chapters.
+- All four starting directions, later changes of direction, and decisions that carry forward.
+- Movement, camera, collisions, recurring characters, three Albuquerque discoveries, and accessible HTML alternatives.
+- Scarcity of money, time, housing, transport, equipment, learning places, and services; explicit opportunity costs.
+- Monthly work/learning arrangements, housing choices, clinic conflicts, a promotion or business, transport and college loans, and transparent budget settlement.
+- Local save migration, narration, complete decision journal, four reflection checkpoints, and the printable/downloadable Life Snapshot at 22.
 
-The current ending deliberately identifies the player as 18. It does not invent an age-22 outcome from a handful of first-day decisions. Future snapshots should describe circumstances, support, barriers, and trade-offs without winner/loser scores.
+The requested ending and final chapters are implemented. The following are optional improvements, not prerequisites for completing this story:
+
+- Refined/replacement character art and explorable indoor rooms.
+- Human-reviewed Spanish text/voices, remappable controls, and additional assistive-technology refinements.
+- More optional conversations, additional seeds/events, and extended post-22 stories.
+- Offline caching, multiple local save slots, and teacher-configurable session length.
+- Broader physical-device and screen-reader coverage. Current automated tests use Chromium at desktop and Chromebook sizes.
+
+Continue to keep the economics transparent and avoid winner/loser scores if expanding the game. The selected-month model should not be presented as a full financial forecast for four real years.

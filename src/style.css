@@ -1014,3 +1014,91 @@ dialog h3 {
   color: #31594f;
   padding: 7px 10px;
 }
+/* First-week reading and calendar */
+details {
+  margin: 16px 0;
+  border: 1px solid #cbd4c1;
+  border-radius: 6px;
+  padding: 12px 15px;
+  background: #f8f8ef;
+}
+summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #315f54;
+}
+details p {
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+.cost-line {
+  background: #edf0e4;
+  border-radius: 5px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.today-plan {
+  margin: 15px 0;
+  padding: 12px;
+  border-left: 3px solid #b77b54;
+  background: #f0e9d9;
+}
+.today-plan p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
+.calendar-grid {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.calendar-grid li {
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #d2dbc6;
+  border-radius: 6px;
+  background: #f5f5eb;
+}
+.calendar-grid li[aria-current] {
+  border: 2px solid #315f54;
+  background: #eaf0df;
+}
+.calendar-grid strong {
+  font-size: 14px;
+}
+.calendar-grid span {
+  font-size: 14px;
+}
+.calendar-grid small {
+  line-height: 1.5;
+  color: #526858;
+  font-size: 12px;
+}
+.ledger-row {
+  border-bottom: 1px solid #d4dccb;
+  padding-bottom: 10px;
+  font-size: 13px;
+}
+#restart {
+  margin-top: 15px;
+}
+.choices button span {
+  font-size: 14px;
+}
+.dialogue-text {
+  font-size: 18px;
+}
+dialog .primary {
+  margin-top: 8px;
+}
+@media (max-width: 500px) {
+  .calendar-grid {
+    grid-template-columns: 1fr;
+  }
+}

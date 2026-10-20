@@ -354,6 +354,22 @@ export class Neighborhood extends Phaser.Scene {
     this.hooks.travel(15, this.player.x, this.player.y);
     this.hooks.enter(id);
   }
+  resetPosition(x: number, y: number) {
+    if (!this.player) {
+      this.startX = x;
+      this.startY = y;
+      return;
+    }
+    this.player.setVelocity(0).setAcceleration(0).setPosition(x, y);
+    this.elapsed = 0;
+    this.nearest = null;
+    this.touch = { x: 0, y: 0 };
+    this.marker.setVisible(false);
+    (
+      this.children.getByName("shadow") as Phaser.GameObjects.Ellipse
+    )?.setPosition(x, y + 17);
+    this.hooks.prompt("Explore at your pace · Locations menu also works");
+  }
   position() {
     return this.player
       ? { x: this.player.x, y: this.player.y }

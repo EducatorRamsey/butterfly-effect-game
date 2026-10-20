@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { locations } from "./story";
+import { discoveries } from "./neighborhood";
+const worldPlaces = [...locations, ...discoveries];
 import type { Place } from "./model";
 export interface WorldHooks {
   enter: (id: Place) => void;
@@ -162,27 +164,94 @@ export class Neighborhood extends Phaser.Scene {
         .setOrigin(0.5);
       sign
         .setInteractive({ useHandCursor: true })
-        .on("pointerdown", () => this.visit(l.id));
+        .on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+          this.pointerVisit(pointer, l.id),
+        );
       const zone = this.add
         .zone(x + w / 2, y + h / 2, w, h)
         .setInteractive({ useHandCursor: true });
-      zone.on("pointerdown", () => this.visit(l.id));
+      zone.on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+        this.pointerVisit(pointer, l.id),
+      );
       this.add
         .zone(nx, ny, 38, 48)
         .setInteractive({ useHandCursor: true })
-        .on("pointerdown", () => this.visit(l.id));
+        .on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+          this.pointerVisit(pointer, l.id),
+        );
       this.walls.add(this.add.rectangle(x + w / 2, y + h / 2, w, h, 0, 0));
       this.add
-        .text(x + w / 2, y + h + 18, `◇  ${l.person}`, {
+        .text(x + w / 2 - 28, y + h + 24, `◇  ${l.person}`, {
           fontFamily: "sans-serif",
           fontSize: "15px",
           color: "#304d4c",
           backgroundColor: "#f8edce",
           padding: { x: 10, y: 5 },
         })
-        .setOrigin(0.5, 0)
+        .setOrigin(1, 0)
         .setInteractive({ useHandCursor: true })
-        .on("pointerdown", () => this.visit(l.id));
+        .on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+          this.pointerVisit(pointer, l.id),
+        );
+    }
+    // Original neighborhood discoveries: each has a pointer target and keyboard prompt.
+    for (const d of discoveries) {
+      const { x, y, w, h } = d;
+      if (d.id === "lowrider") {
+        g.fillStyle(0x566e68);
+        g.fillRoundedRect(x - 10, y - 10, w + 20, h + 25, 8);
+        g.fillStyle(0x2c8e99);
+        g.fillRoundedRect(x, y + 18, w, 35, 8);
+        g.fillRoundedRect(x + 55, y, w - 100, 35, 10);
+        g.fillStyle(0xe4e9d7);
+        g.fillRect(x + 65, y + 6, 40, 20);
+        g.fillRect(x + 112, y + 6, 40, 20);
+        g.fillStyle(0xf2ca70);
+        g.fillRect(x + 10, y + 38, w - 20, 4);
+        g.fillStyle(0x263d42);
+        g.fillCircle(x + 48, y + 54, 17);
+        g.fillCircle(x + w - 48, y + 54, 17);
+        g.fillStyle(0xd4d6c4);
+        g.fillCircle(x + 48, y + 54, 10);
+        g.fillCircle(x + w - 48, y + 54, 10);
+      } else if (d.id === "mural") {
+        g.fillStyle(0xc58a67);
+        g.fillRoundedRect(x, y, w, h, 3);
+        g.fillStyle(0x3e8583);
+        g.fillTriangle(x + 10, y + h, x + 60, y + 4, x + 120, y + h);
+        g.fillStyle(0xd6b866);
+        g.fillCircle(x + 160, y + 18, 16);
+        g.lineStyle(4, 0x6a6b9c);
+        g.lineBetween(x + 20, y + 12, x + 200, y + 35);
+      } else {
+        g.fillStyle(0x75916b);
+        g.fillEllipse(x + w / 2, y + 20, w + 40, 95);
+        g.fillStyle(0x556f58);
+        g.fillCircle(x + 25, y - 10, 40);
+        g.fillStyle(0x9d754d);
+        g.fillRect(x + 20, y + 10, 9, 35);
+      }
+      this.add
+        .text(x + w / 2, y - 30, "◇ " + d.name, {
+          fontFamily: "sans-serif",
+          fontSize: "13px",
+          color: "#fff9e5",
+          backgroundColor: "#315c55",
+          padding: { x: 8, y: 5 },
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+          this.pointerVisit(pointer, d.id),
+        );
+      this.add
+        .zone(x + w / 2, y + h / 2, w, h + 20)
+        .setInteractive({ useHandCursor: true })
+        .on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+          this.pointerVisit(pointer, d.id),
+        );
+      if (d.id !== "bosque")
+        this.walls.add(this.add.rectangle(x + w / 2, y + h / 2, w, h, 0, 0));
     }
     // Desert planting, sage, terracotta planters, and pocket parks.
     const cactus = (x: number, y: number) => {
@@ -346,9 +415,14 @@ export class Neighborhood extends Phaser.Scene {
     this.input.keyboard!.addCapture(["UP", "DOWN", "LEFT", "RIGHT"]);
     this.game.events.emit("world-ready");
   }
+  private pointerVisit(pointer: Phaser.Input.Pointer, id: Place) {
+    // Phaser also receives window mouse events from accessible HTML controls.
+    // A DOM button must never activate a world object behind it.
+    if (pointer.event.target === this.game.canvas) this.visit(id);
+  }
   visit(id: Place) {
     if (this.paused) return;
-    const l = locations.find((l) => l.id === id)!;
+    const l = worldPlaces.find((l) => l.id === id)!;
     this.player.setVelocity(0).setAcceleration(0);
     this.player.setPosition(l.x + l.w / 2, l.y + l.h + 64);
     this.hooks.travel(15, this.player.x, this.player.y);
@@ -419,7 +493,7 @@ export class Neighborhood extends Phaser.Scene {
     (
       this.children.getByName("shadow") as Phaser.GameObjects.Ellipse
     )?.setPosition(this.player.x, this.player.y + 17);
-    const nearest = locations.find(
+    const nearest = worldPlaces.find(
       (l) =>
         Phaser.Math.Distance.Between(
           this.player.x,

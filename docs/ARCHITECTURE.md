@@ -33,3 +33,15 @@ The storage key remains `butterfly-effect-v1`. Legacy saves default to day 1, an
 `finishDay` returns unchanged state when already ended. On day 7 it applies housing once: cash first, savings second, then the gap as an unpaid bill in `debt`. `nextDay` advances only ended days 1–6, resets the daily clock and position, and retains decisions and money. Temporary Tuesday rides restore the previous transport mode the next morning.
 
 Daily wages are credited in `decide`, not at calendar advancement. `incomeSet` updates a schedule estimate without adding cash. The ledger labels every decision and the single weekly settlement. Savings transfers record opposite cash/savings effects. No interest or loan origination occurs in this chapter.
+
+## Two-week expansion (v0.3)
+
+`firstWeekBalance.ts` rebalances the existing first-week content without duplicating its rendering logic. Day 2 has a three-hour work meeting and a 2 PM advising deadline. Food choices differ in quantity and waiting time. Housing scenes cover quiet space, viewing access, and sharing maintenance responsibilities. Bike purchases stay available after the initial transport decision.
+
+`secondWeek.ts` defines days 8–14. It resolves earlier skill, housing, relationship, food, and equipment decisions into later opportunities. `neighborhood.ts` owns the three discovery sites, seeded daily bulletins, shared choice factory, and fourteen distinct reflection prompts. `world.ts` renders and detects both the five original locations and the three discoveries; the HTML map provides equivalent access.
+
+The save still uses the original key. New fields default safely for old saves: meals, parts, wellbeing, Alex connection, Jordan trust, calendar-read days, and a stable event seed. A completed day-7 save becomes an ended first week that can advance; its money and payment ledger are retained. `finishDay` settles housing on days 7 and 14, and only day 14 completes the current game. Each ledger entry records its actual day. Friday housing is `ceil(monthly rent / 4)` for a room or $40 with family; the smaller room is $88/week.
+
+Food and parts are usable resources, not decorative counters. A packed meal saves $8 on an eligible work shift; repair practice or work consumes a part. An Alex connection of 2 permits a bike loan. Jordan trust opens shared housing and coordination options. Quiet housing saves 30 minutes on week-two learning; wellbeing of at least 4 saves another 15 minutes. The smaller room trades away the quiet-space saving. These supports are illustrative game rules, not measures of a student's worth.
+
+Daily bulletins are derived from the saved seed and day. New stories vary; revisiting or reloading cannot reroll a donated part, paint availability, or weather notice. No money is randomly removed. Weather affects the trail and week-two city-bus commitments; costs appear before choosing. Future calendar entries list known deadlines; the current bulletin reveals that morning's change.

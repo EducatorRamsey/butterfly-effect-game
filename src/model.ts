@@ -1,4 +1,12 @@
-export type Place = "home" | "work" | "college" | "bus" | "apartment";
+export type Place =
+  | "home"
+  | "work"
+  | "college"
+  | "bus"
+  | "apartment"
+  | "lowrider"
+  | "mural"
+  | "bosque";
 export type Path = "College" | "Employment" | "Trades" | "Independent work";
 export interface RecordEntry {
   day?: number;
@@ -16,6 +24,13 @@ export interface LedgerEntry {
   debt: number;
 }
 export interface State {
+  seed: number;
+  meals: number;
+  parts: number;
+  wellbeing: number;
+  alex: number;
+  jordan: number;
+  calendarChecked: number[];
   day: number;
   completed: boolean;
   ledger: LedgerEntry[];
@@ -44,6 +59,13 @@ export interface State {
 export const SAVE_KEY = "butterfly-effect-v1";
 export function initial(path: Path): State {
   return {
+    seed: Math.floor(Math.random() * 1000000),
+    meals: 0,
+    parts: 0,
+    wellbeing: 2,
+    alex: 0,
+    jordan: 0,
+    calendarChecked: [],
     version: 1,
     day: 1,
     completed: false,
@@ -95,8 +117,28 @@ export interface Choice {
   deadline?: number;
   incomeSet?: number;
   upfront?: number;
+  meals?: number;
+  mealCost?: number;
+  parts?: number;
+  partsCost?: number;
+  wellbeing?: number;
+  alex?: number;
+  minAlex?: number;
+  minJordan?: number;
+  minSkill?: number;
+  requiresLabel?: string;
 }
 export function unavailable(s: State, c: Choice): string | null {
+  if (c.minAlex && s.alex < c.minAlex)
+    return `Spend time with Alex first (connection ${s.alex}/${c.minAlex}).`;
+  if (c.minJordan && s.jordan < c.minJordan)
+    return `Build trust with Jordan first (${s.jordan}/${c.minJordan}).`;
+  if (c.minSkill && s.skill < c.minSkill)
+    return `Needs ${c.minSkill} skill steps; you have ${s.skill}.`;
+  if (c.mealCost && s.meals < c.mealCost)
+    return `Needs ${c.mealCost} packed meal; groceries or the pantry can help.`;
+  if (c.partsCost && s.parts < c.partsCost)
+    return `Needs ${c.partsCost} repair part; find one at the lowrider or co-op.`;
   if (s.ended) return "This day has ended.";
   if (s.minutes + c.time > 18 * 60) return "Not enough time before 6 PM.";
   if (c.upfront && s.money < c.upfront)
@@ -105,7 +147,7 @@ export function unavailable(s: State, c: Choice): string | null {
   if (c.deadline && s.minutes + c.time > c.deadline)
     return "This opportunity has closed for today.";
   if (c.requires && !s.flags.includes(c.requires))
-    return "Requires the training reservation.";
+    return c.requiresLabel || "Requires the training reservation.";
   return null;
 }
 export function decide(s: State, place: Place, c: Choice): State {
@@ -113,6 +155,11 @@ export function decide(s: State, place: Place, c: Choice): State {
   return {
     ...s,
     minutes: s.minutes + c.time,
+    meals: s.meals + (c.meals || 0) - (c.mealCost || 0),
+    parts: s.parts + (c.parts || 0) - (c.partsCost || 0),
+    wellbeing: Math.max(0, Math.min(5, s.wellbeing + (c.wellbeing || 0))),
+    alex: s.alex + (c.alex || 0),
+    jordan: s.jordan + (place === "apartment" ? c.friends || 0 : 0),
     money: s.money + c.money,
     savings: s.savings + (c.savings || 0),
     debt: s.debt + (c.debt || 0),
@@ -124,9 +171,12 @@ export function decide(s: State, place: Place, c: Choice): State {
     housing: c.housing ?? s.housing,
     transport: c.transport ?? s.transport,
     returnTransport:
-      s.day === 4 && ["Shared ride", "Family ride"].includes(c.transport || "")
-        ? (s.returnTransport ?? s.transport)
-        : s.returnTransport,
+      c.transport && !["Shared ride", "Family ride"].includes(c.transport)
+        ? undefined
+        : s.day === 4 &&
+            ["Shared ride", "Family ride"].includes(c.transport || "")
+          ? (s.returnTransport ?? s.transport)
+          : s.returnTransport,
     flags: c.flag ? [...new Set([...s.flags, c.flag])] : s.flags,
     ledger: [
       ...s.ledger,
@@ -192,13 +242,35 @@ export function load(): State | null {
     )
       return null;
     // Preserve graduation-weekend saves; no student loses their earlier choices.
+    s.seed ??= 104729;
+    s.meals ??= 0;
+    s.parts ??= 0;
+    s.wellbeing ??= 2;
+    s.alex ??= s.decisions.filter(
+      (d: RecordEntry) =>
+        d.place === "bus" && d.title === "Spend time with Alex",
+    ).length;
+    s.jordan ??= s.decisions.filter(
+      (d: RecordEntry) => d.place === "apartment",
+    ).length;
+    s.calendarChecked ??= [];
+    if (
+      !["seed", "meals", "parts", "wellbeing", "alex", "jordan"].every(
+        (k) => Number.isFinite(s[k]) && s[k] >= 0,
+      ) ||
+      !Array.isArray(s.calendarChecked) ||
+      !s.calendarChecked.every(
+        (d: number) => Number.isInteger(d) && d >= 1 && d <= 14,
+      )
+    )
+      return null;
     s.day ??= 1;
     s.completed ??= false;
     s.ledger ??= [];
     if (
       !Number.isInteger(s.day) ||
       s.day < 1 ||
-      s.day > 7 ||
+      s.day > 14 ||
       typeof s.completed !== "boolean" ||
       !Array.isArray(s.ledger)
     )
@@ -215,7 +287,16 @@ export function load(): State | null {
       !s.decisions.every(
         (d: RecordEntry) =>
           d &&
-          ["home", "work", "college", "bus", "apartment"].includes(d.place) &&
+          [
+            "home",
+            "work",
+            "college",
+            "bus",
+            "apartment",
+            "lowrider",
+            "mural",
+            "bosque",
+          ].includes(d.place) &&
           typeof d.title === "string" &&
           typeof d.cost === "string" &&
           typeof d.result === "string" &&
@@ -237,6 +318,7 @@ export function load(): State | null {
       )
     )
       return null;
+    if (s.day === 7 && s.completed) s.completed = false;
     return s as State;
   } catch {
     return null;
@@ -256,15 +338,19 @@ export function todayDecision(s: State, place: Place) {
   return s.decisions.find((d) => (d.day ?? 1) === s.day && d.place === place);
 }
 export function dailyCount(s: State) {
-  return s.decisions.filter((d) => (d.day ?? 1) === s.day).length;
+  return s.decisions.filter(
+    (d) =>
+      (d.day ?? 1) === s.day &&
+      ["home", "work", "college", "bus", "apartment"].includes(d.place),
+  ).length;
 }
 export function housingDue(s: State) {
-  return s.rent > 0 ? 125 : 40;
+  return s.rent > 0 ? Math.ceil(s.rent / 4) : 40;
 }
 export function finishDay(s: State): State {
   if (s.ended) return s;
-  const next = { ...s, ended: true, completed: s.day === 7 };
-  if (s.day !== 7) return next;
+  const next = { ...s, ended: true, completed: s.day === 14 };
+  if (s.day % 7 !== 0) return next;
   // Weekly housing is charged once. Any shortfall is an unpaid bill, not a fabricated loan.
   const due = housingDue(s),
     cash = Math.min(s.money, due),
@@ -278,7 +364,7 @@ export function finishDay(s: State): State {
     ledger: [
       ...s.ledger,
       {
-        day: 7,
+        day: s.day,
         label:
           s.rent > 0 ? "Weekly room payment" : "Weekly household contribution",
         money: -cash,
@@ -289,7 +375,7 @@ export function finishDay(s: State): State {
   };
 }
 export function nextDay(s: State): State {
-  if (!s.ended || s.completed || s.day >= 7) return s;
+  if (!s.ended || s.completed || s.day >= 14) return s;
   return {
     ...s,
     day: s.day + 1,

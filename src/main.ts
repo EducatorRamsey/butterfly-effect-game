@@ -19,6 +19,12 @@ import {
 } from "./model";
 import { locations, choicesFor, followup, type Location } from "./story";
 import { dayPlans, dayLabel, weekLocation, calendarNote } from "./week";
+import {
+  discoveries,
+  discoveryLocation,
+  dailyEvent,
+  reflectionQuestion,
+} from "./neighborhood";
 import { Neighborhood } from "./world";
 import { Narrator } from "./narration";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
@@ -31,18 +37,26 @@ let previousFocus: HTMLElement | null = null;
 let resultMode = false;
 const dollars = (n: number) => `$${n.toLocaleString()}`;
 $("#app").innerHTML = `
-<header class="masthead"><a class="brand" href="#" aria-label="The Butterfly Effect, title screen"><span class="butterfly">✦</span><span>THE BUTTERFLY EFFECT<small>THE COST OF EVERY CHOICE</small></span></a><span class="edition">A LIFE IN THE MAKING <i>·</i> YOUR FIRST WEEK</span><button id="help" class="quiet">How to play</button></header>
+<header class="masthead"><a class="brand" href="#" aria-label="The Butterfly Effect, title screen"><span class="butterfly">✦</span><span>THE BUTTERFLY EFFECT<small>THE COST OF EVERY CHOICE</small></span></a><span class="edition">A LIFE IN THE MAKING <i>·</i> YOUR FIRST TWO WEEKS</span><button id="help" class="quiet">How to play</button></header>
 <main id="game-shell" hidden>
-<section class="topline"><div><span class="eyebrow">ALBUQUERQUE, NEW MEXICO</span><h1>Your next chapter starts here.</h1><p>Seven days. A neighborhood full of possibilities.</p></div><div class="day"><span id="day-label">DAY 1 · SATURDAY · AGE 18</span><strong id="clock"></strong><small>Today ends at 6:00 PM</small></div></section>
+<section class="topline"><div><span class="eyebrow">ALBUQUERQUE, NEW MEXICO</span><h1>Your next chapter starts here.</h1><p>Two weeks. A neighborhood with stories to discover.</p></div><div class="day"><span id="day-label">DAY 1 · SATURDAY · AGE 18</span><strong id="clock"></strong><small>Today ends at 6:00 PM</small></div></section>
 <section class="dashboard" aria-label="Your resources" aria-live="polite"><div><span>SPENDING MONEY</span><strong id="money"></strong></div><div><span>SAVINGS / UNPAID</span><strong id="savings"></strong></div><div><span>TIME LEFT</span><strong id="time-left"></strong></div><div><span>SKILLS</span><strong id="skill"></strong></div><div><span>YOUR PATH</span><button id="path" class="path-button"></button></div></section>
 <section class="play-layout"><div class="world-card"><div class="world-top"><span><i class="live-dot"></i> JUNIPER NEIGHBORHOOD</span><span>Explore. Connect. Choose.</span></div><div id="world"></div><div class="world-bottom"><span id="prompt" role="status">Explore at your pace · Locations menu also works</span><button id="map" class="small-button">Locations →</button></div><div class="touch" aria-label="Touch movement"><button data-dir="up" aria-label="Move up">↑</button><div><button data-dir="left" aria-label="Move left">←</button><button data-dir="down" aria-label="Move down">↓</button><button data-dir="right" aria-label="Move right">→</button></div></div></div>
-<aside class="sidebar"><span class="eyebrow">A LITTLE DIRECTION</span><h2>There’s no single<br>right way forward.</h2><p>You have limited time today. Discover what matters to you, and what each choice leaves behind.</p><div class="rule"></div><button id="calendar" class="wide secondary">Week calendar →</button><div id="today-plan" class="today-plan"></div><h3>YOUR NEIGHBORHOOD</h3><nav id="location-list" aria-label="Visit a location"></nav><div class="note"><span>→ THE RIPPLE EFFECT</span><p id="ripple">Small choices can open unexpected doors. Start a conversation.</p></div><button id="summary" class="wide secondary">Decision journal <span id="count">0 / 5</span></button><button id="finish" class="wide primary">Finish the day →</button></aside></section>
+<aside class="sidebar"><span class="eyebrow">A LITTLE DIRECTION</span><h2>There’s no single<br>right way forward.</h2><p>You have limited time today. Discover what matters to you, and what each choice leaves behind.</p><div class="rule"></div><button id="calendar" class="wide secondary">Week calendar →</button><div id="today-plan" class="today-plan"></div><section id="supplies" class="supplies" aria-label="Supplies and support"></section><h3>YOUR NEIGHBORHOOD</h3><nav id="location-list" aria-label="Visit a location"></nav><h3>DISCOVER ALBUQUERQUE</h3><nav id="discoveries" aria-label="Explore Albuquerque"></nav><div class="note"><span>→ THE RIPPLE EFFECT</span><p id="ripple">Small choices can open unexpected doors. Start a conversation.</p></div><button id="summary" class="wide secondary">Decision journal <span id="count">0 / 5</span></button><button id="finish" class="wide primary">Finish the day →</button></aside></section>
 <footer class="game-footer"><span><kbd>W A S D</kbd> / <kbd>↑ ↓ ← →</kbd> Move <b>·</b> <kbd>E</kbd> Talk <b>·</b> Click a building to visit</span><span id="save-status" role="status">Progress saves on this device</span></footer></main>
-<section id="title" class="title-screen"><div class="title-art" aria-hidden="true"><div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain"></div><span class="art-caption">35.0844° N &nbsp; 106.6504° W<br>ALBUQUERQUE, NEW MEXICO</span><div class="adobe a1"></div><div class="adobe a2"></div><div class="desert-road"></div><div class="desert-plant">✺</div></div><div class="title-copy"><span class="eyebrow">YOUR LIFE. YOUR CHOICES. THEIR RIPPLE EFFECTS.</span><h1>The Butterfly<br><em>Effect.</em></h1><p class="subtitle">The cost of every choice</p><p>School is over. What comes next is yours to explore.</p><p>Meet your neighbors. Make choices with limited time and money. See what changes over your first week.</p><label for="starting-path">Where are you thinking of starting?</label><select id="starting-path"><option>College</option><option>Employment</option><option>Trades</option><option>Independent work</option></select><p class="fine">A starting point, not a permanent track. You can change direction.</p><div class="title-actions"><button id="new" class="primary">Begin your story →</button><button id="continue" class="secondary" ${load() ? "" : "disabled"}>Continue saved story</button></div><span class="fine">SEVEN PLAYABLE DAYS · GRADUATION WEEK</span></div></section>
+<section id="title" class="title-screen"><div class="title-art" aria-hidden="true"><div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain"></div><span class="art-caption">35.0844° N &nbsp; 106.6504° W<br>ALBUQUERQUE, NEW MEXICO</span><div class="adobe a1"></div><div class="adobe a2"></div><div class="desert-road"></div><div class="desert-plant">✺</div></div><div class="title-copy"><span class="eyebrow">YOUR LIFE. YOUR CHOICES. THEIR RIPPLE EFFECTS.</span><h1>The Butterfly<br><em>Effect.</em></h1><p class="subtitle">The cost of every choice</p><p>School is over. What comes next is yours to explore.</p><p>Meet your neighbors. Make choices with limited time and money. See how choices unfold across two weeks.</p><label for="starting-path">Where are you thinking of starting?</label><select id="starting-path"><option>College</option><option>Employment</option><option>Trades</option><option>Independent work</option></select><p class="fine">A starting point, not a permanent track. You can change direction.</p><div class="title-actions"><button id="new" class="primary">Begin your story →</button><button id="continue" class="secondary" ${load() ? "" : "disabled"}>Continue saved story</button></div><span class="fine">FOURTEEN PLAYABLE DAYS · A LIFE IN THE MAKING</span></div></section>
 <section class="access-bar" aria-label="Narration and accessibility"><span>READ IT YOUR WAY</span><button id="listen">Listen</button><button id="replay">Replay</button><button id="stop">Stop</button><label>Speed <select id="speed" aria-label="Narration speed"><option value="0.7">0.7×</option><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option></select></label><label class="check"><input id="auto-read" type="checkbox"> Auto-narrate</label><label class="check"><input id="reduce" type="checkbox"> Reduce motion</label><span id="speech-status" role="status"></span></section>
 <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div><div class="panel-narration" aria-label="Dialogue narration"><button id="panel-listen" aria-label="Listen to this panel">Listen</button><button id="panel-replay" aria-label="Replay this panel">Replay</button><button id="panel-stop" aria-label="Stop panel narration">Stop</button><label>Speed <select id="panel-speed" aria-label="Panel narration speed"><option value="0.7">0.7×</option><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option></select></label><span id="panel-speech-status" role="status"></span></div><button id="close-dialog" class="close" aria-label="Close dialogue">×</button></dialog>`;
 const dialog = $<HTMLDialogElement>("#dialog");
 function render() {
+  $("#calendar").textContent = state.calendarChecked.includes(state.day)
+    ? "Week calendar ✓"
+    : "Week calendar · new updates";
+  $("#supplies").innerHTML =
+    `<strong>Meals ${state.meals} · Repair parts ${state.parts}</strong><small>Alex connection ${state.alex} · Jordan trust ${state.jordan}</small><small>Wellbeing ${state.wellbeing}/5${state.wellbeing >= 4 ? " · rested focus available" : ""}</small>`;
+  $("#discoveries").innerHTML = discoveries
+    .map((d) => `<button data-place="${d.id}">${d.name} →</button>`)
+    .join("");
   $("#clock").textContent = clock(state.minutes);
   $("#day-label").textContent = dayLabel(state) + " · Age 18";
   $("#today-plan").innerHTML =
@@ -55,7 +69,7 @@ function render() {
   $("#skill").textContent =
     `${state.skill} ${state.skill === 1 ? "step" : "steps"} forward`;
   $("#path").textContent = state.path + " →";
-  $("#count").textContent = `${dailyCount(state)} / 5 today`;
+  $("#count").textContent = `${dailyCount(state)} commitments today`;
   $("#location-list").innerHTML = locations
     .map(
       (l, i) =>
@@ -167,15 +181,16 @@ function boot() {
 }
 function intro() {
   open(
-    `<span class="eyebrow">DAY 1 · SATURDAY</span><h2 id="dialog-title">A day of possibilities.</h2><p>You have ${dollars(state.money)} to spend and nine hours today. You can’t do everything—that’s <strong>scarcity</strong>.</p><div class="callout"><p>Help Elena, or use the laptop for a scholarship? The next-best choice you give up is your <strong>opportunity cost</strong>.</p></div><details><summary>Controls and travel time</summary><p>Walk with WASD or arrows. Press E near a person, or choose a location. Walking uses 5 game minutes per 15 seconds; menu travel takes 5 minutes.</p></details><button id="intro-next" class="primary">Explore my neighborhood →</button>`,
+    `<span class="eyebrow">DAY 1 · SATURDAY</span><h2 id="dialog-title">A day of possibilities.</h2><p>You’re exploring ${state.path.toLowerCase()}. You have ${dollars(state.money)} to spend and nine hours today. You can’t do everything—that’s <strong>scarcity</strong>.</p><div class="callout"><p>You live with your aunt, Elena. Help her, or use the shared laptop for a scholarship? The next-best choice you give up is your <strong>opportunity cost</strong>.</p></div><details><summary>Controls and travel time</summary><p>Walk with WASD or arrows. Press E near a person, or choose a location. Walking uses 5 game minutes per 15 seconds; menu travel takes 5 minutes.</p></details><button id="intro-next" class="primary">Explore my neighborhood →</button>`,
     "intro",
   );
   $("#intro-next").onclick = close;
 }
 function morning() {
-  const plan = dayPlans[state.day - 1];
+  const plan = dayPlans[state.day - 1],
+    event = dailyEvent(state);
   open(
-    `<span class="eyebrow">${dayLabel(state)}</span><h2 id="dialog-title">${plan.title}</h2><p>${plan.note}</p><div class="callout"><strong>Today’s heads-up</strong><p>${plan.focus}</p></div><p class="cost-line">${dollars(state.money)} spending · ${dollars(state.savings)} saved · Friday housing: ${dollars(housingDue(state))}</p><button id="morning-go" class="primary">Start today →</button><button id="morning-calendar" class="secondary">Check the calendar</button>`,
+    `<span class="eyebrow">${dayLabel(state)}</span><h2 id="dialog-title">${plan.title}</h2><p>${plan.note} Check the weekly calendar before choosing.</p><div class="callout"><strong>Today’s heads-up</strong><p>${plan.focus}</p><strong>${event.title}</strong><p>${event.text}</p></div><p class="cost-line">${dollars(state.money)} spending · ${dollars(state.savings)} saved · Friday housing: ${dollars(housingDue(state))}</p><button id="morning-go" class="primary">Start today →</button><button id="morning-calendar" class="secondary">Check the calendar</button>`,
     "morning",
   );
   $("#morning-go").onclick = close;
@@ -191,8 +206,12 @@ function advance() {
   morning();
 }
 function calendar() {
+  if (!state.calendarChecked.includes(state.day))
+    state.calendarChecked.push(state.day);
+  render();
+  const event = dailyEvent(state);
   open(
-    `<span class="eyebrow">YOUR FIRST WEEK</span><h2 id="dialog-title">Make room for what matters.</h2><p>${calendarNote(state)}</p><ol class="calendar-grid">${dayPlans.map((p, i) => `<li ${i + 1 === state.day ? 'aria-current="date"' : ""}><strong>Day ${i + 1} · ${DAYS[i]}</strong><span>${p.title}</span><small>${p.focus}</small><small>${i + 1 < state.day ? "Day finished" : i + 1 === state.day ? "You are here" : "Coming up"}</small></li>`).join("")}</ol><details><summary>How the money works</summary><p>Work pays after each completed shift. The weekly income number is a plan, not extra pay. Friday housing uses spending money first, then savings; any shortfall becomes an unpaid bill with no interest.</p><p>The $125 weekly room payment is a simplified four-week share of the $500 monthly rent. Family housing has a $40 weekly contribution. These are classroom examples.</p></details><button id="calendar-back" class="primary">Back to today →</button>`,
+    `<span class="eyebrow">YOUR FIRST TWO WEEKS</span><h2 id="dialog-title">Make room for what matters.</h2><p>${calendarNote(state)}</p><div class="callout"><strong>Today’s bulletin · ${event.title}</strong><p>${event.text}</p></div><ol class="calendar-grid">${dayPlans.map((p, i) => `<li ${i + 1 === state.day ? 'aria-current="date"' : ""}><strong>Day ${i + 1} · ${DAYS[i % 7]}</strong><span>${p.title}</span><small>${p.focus}</small><small>${i + 1 < state.day ? "Day finished" : i + 1 === state.day ? "You are here" : "Coming up"}</small></li>`).join("")}</ol><details><summary>How the money works</summary><p>Work pays after each completed shift. The weekly income number is a plan, not extra pay. Friday housing uses spending money first, then savings; any shortfall becomes an unpaid bill with no interest.</p><p>The $125 weekly room payment is a simplified four-week share of the $500 monthly rent. Family housing has a $40 weekly contribution. These are classroom examples.</p></details><button id="calendar-back" class="primary">Back to today →</button>`,
     "calendar",
   );
   $("#calendar-back").onclick = () => {
@@ -202,7 +221,10 @@ function calendar() {
 }
 function visit(id: Place) {
   if (!active) return;
-  const l = weekLocation(locations.find((l) => l.id === id)!, state);
+  const base = [...locations, ...discoveries].find((l) => l.id === id)!;
+  const l = discoveries.some((d) => d.id === id)
+    ? discoveryLocation(base, state)
+    : weekLocation(base, state);
   if (!state.visited.includes(id)) state.visited.push(id);
   const p = scene?.position();
   if (p) {
@@ -244,7 +266,7 @@ function showLocation(l: Location) {
         resultMode = true;
         render();
         open(
-          `<span class="eyebrow">A CHOICE. A RIPPLE.</span><h2 id="dialog-title">${c.label}</h2><p>${c.result}</p><div class="callout"><strong>What changed</strong><p>${c.time} minutes used · ${c.money >= 0 ? "+" : ""}${dollars(c.money)} spending money${c.savings ? ` · +$${c.savings} savings` : ""}${c.skill ? " · +" + c.skill + " skill" : ""}${c.income ? " · $" + c.income + "/week expected income" : ""}${c.rent ? " · $" + c.rent + "/month rent" : ""}</p><strong>Your opportunity cost</strong><p>${c.nextBest}</p></div><button id="result-next" class="primary">Continue →</button>`,
+          `<span class="eyebrow">A CHOICE. A RIPPLE.</span><h2 id="dialog-title">${c.label}</h2><p>${c.result}</p><div class="callout"><strong>What changed</strong><p>${c.time} minutes used · ${c.money >= 0 ? "+" : ""}${dollars(c.money)} spending money${c.savings ? ` · +$${c.savings} savings` : ""}${c.skill ? " · +" + c.skill + " skill" : ""}${c.meals ? ` · +${c.meals} packed meals` : ""}${c.mealCost ? ` · ${c.mealCost} meal used` : ""}${c.parts ? ` · +${c.parts} repair part` : ""}${c.partsCost ? ` · ${c.partsCost} part used` : ""}${c.alex ? ` · +${c.alex} Alex connection` : ""}${c.friends ? ` · +${c.friends} connection` : ""}${c.wellbeing ? ` · wellbeing ${state.wellbeing}/5` : ""}${c.income ? " · $" + c.income + "/week expected income" : ""}${c.rent ? " · $" + c.rent + "/month rent" : ""}</p><strong>Your opportunity cost</strong><p>${c.nextBest}</p></div><button id="result-next" class="primary">Continue →</button>`,
           "result",
         );
         $("#result-next").onclick = () => {
@@ -296,7 +318,7 @@ function directVisit(id: Place) {
 }
 function map() {
   open(
-    `<span class="eyebrow">ACCESSIBLE NEIGHBORHOOD MAP</span><h2 id="dialog-title">Where would you like to go?</h2><p>Each visit travels directly to the entrance and uses 5 minutes. Walking is always available too.</p><div class="choices">${locations.map((l) => `<button data-travel="${l.id}"><strong>${l.name}</strong><span>Talk to ${l.person} · ${todayDecision(state, l.id) ? "choice recorded" : "opportunity to explore"}</span></button>`).join("")}</div>`,
+    `<span class="eyebrow">ACCESSIBLE NEIGHBORHOOD MAP</span><h2 id="dialog-title">Where would you like to go?</h2><p>Each visit takes 5 minutes. Discoveries are real places to visit too. Walking is always available too.</p><div class="choices">${[...locations, ...discoveries].map((l) => `<button data-travel="${l.id}"><strong>${l.name}</strong><span>Talk to ${l.person} · ${todayDecision(state, l.id) ? "choice recorded" : "opportunity to explore"}</span></button>`).join("")}</div>`,
     "map",
   );
   document.querySelectorAll<HTMLButtonElement>("[data-travel]").forEach(
@@ -307,13 +329,19 @@ function map() {
   );
 }
 function dayComplete() {
-  if (state.completed && !state.flags.includes("week-reflection"))
+  if (
+    state.day % 7 === 0 &&
+    state.ended &&
+    !state.flags.includes(
+      state.day === 7 ? "week-reflection" : "week-reflection-2",
+    )
+  )
     weekReflection();
   else summary();
 }
 function weekReflection() {
   open(
-    `<span class="eyebrow">REFLECTION 2 · YOUR FIRST WEEK</span><h2 id="dialog-title">What changed your options?</h2><p>Think about one choice this week. What shaped it most?</p><div class="choices">${["My available time", "Money and housing costs", "Transport, services, or support"].map((t) => `<button data-week-reflection="${t}">${t}</button>`).join("")}</div>`,
+    `<span class="eyebrow">REFLECTION 2 · YOUR FIRST TWO WEEKS</span><h2 id="dialog-title">What changed your options?</h2><p>${reflectionQuestion(state.day)}</p><div class="choices">${["My available time", "Money and housing costs", "Transport, services, or support"].map((t) => `<button data-week-reflection="${t}">${t}</button>`).join("")}</div>`,
     "week-reflection",
   );
   document
@@ -322,7 +350,7 @@ function weekReflection() {
       (b) =>
         (b.onclick = () => {
           state.flags.push(
-            "week-reflection",
+            state.day === 7 ? "week-reflection" : "week-reflection-2",
             "Week reflection: " + b.dataset.weekReflection,
           );
           persist();
@@ -336,15 +364,18 @@ function summary() {
       e.label === "Weekly room payment" ||
       e.label === "Weekly household contribution",
   );
+  const bill = bills.at(-1);
   const earned = state.ledger.reduce((n, e) => n + Math.max(0, e.money), 0);
   const spent = -state.ledger.reduce((n, e) => n + Math.min(0, e.money), 0);
   const heading = state.completed
-    ? "YOUR FIRST WEEK · COMPLETE"
-    : state.ended
-      ? `DAY ${state.day} · COMPLETE`
-      : "YOUR DECISION JOURNAL";
+    ? "YOUR FIRST TWO WEEKS · COMPLETE"
+    : state.day === 7 && state.ended
+      ? "YOUR FIRST WEEK · COMPLETE"
+      : state.ended
+        ? `DAY ${state.day} · COMPLETE`
+        : "YOUR DECISION JOURNAL";
   open(
-    `<span class="eyebrow">${heading}</span><h2 id="dialog-title">${state.completed ? "Seven days. Many possible next steps." : "A snapshot of your next chapter."}</h2><p>You are 18. Your choices and the support around you shape what comes next.</p><div class="snapshot"><div><small>SPENDING / SAVINGS / UNPAID BALANCE</small><strong>${dollars(state.money)} / ${dollars(state.savings)} / ${dollars(state.debt)}</strong></div><div><small>HOME</small><strong>${state.housing}</strong></div><div><small>GETTING AROUND</small><strong>${state.transport}</strong></div><div><small>PLANNED INCOME / MONTHLY RENT</small><strong>${dollars(state.income)}/week expected income · ${dollars(state.rent)}/month rent</strong></div><div><small>CONNECTIONS & SKILLS</small><strong>Family support ${state.family} · Friendship ${state.friends} · Skills ${state.skill}</strong></div><div><small>PATHWAY</small><strong>${state.path} · open to change</strong></div></div>${bills.length ? `<div class="callout"><strong>Friday housing: ${dollars(housingDue(state))}</strong><p>${dollars(-bills[0].money)} from spending · ${dollars(-bills[0].savings)} from savings · ${dollars(bills[0].debt)} left unpaid.</p><p>That balance is an unpaid bill, not a new loan. There is no failure score.</p></div>` : `<p class="cost-line">Due Friday: ${dollars(housingDue(state))} for housing. Wages arrive only when you work.</p>`}<div class="actions">${state.ended && !state.completed ? '<button id="next-day" class="primary">Start the next day →</button>' : ""}${state.completed ? '<button id="week-reflect" class="secondary">Reflect on this week</button>' : ""}<button id="journal-back" class="secondary">${state.ended ? "Return to neighborhood" : "Keep exploring"}</button><button id="download" class="secondary">Download reflection</button></div><h3>One choice to remember</h3>${state.decisions.length ? `<div class="callout"><strong>${state.decisions.at(-1)!.title}</strong><p>You gave up: ${state.decisions.at(-1)!.cost}</p></div>` : "<p>Your first decision will appear here.</p>"}<details><summary>Choices and money history (${state.decisions.length} choices)</summary><p>Recorded cash in: ${dollars(earned)} · cash out: ${dollars(spent)}. Transfers to savings are included in cash out, not total spending.</p>${state.decisions.map((d) => `<article class="journal-entry"><small>DAY ${d.day ?? 1}</small><strong>${d.title}</strong><p>${d.result}</p><small>You gave up: ${d.cost}</small></article>`).join("")}<h3>Money history</h3>${state.ledger.length ? state.ledger.map((e) => `<p class="ledger-row">Day ${e.day} · ${e.label}<br>Spending ${e.money >= 0 ? "+" : ""}${dollars(e.money)} · savings ${e.savings >= 0 ? "+" : ""}${dollars(e.savings)} · unpaid ${dollars(e.debt)}</p>`).join("") : "<p>Older saves begin their money history when continued in this version.</p>"}</details><details><summary>Class reflection</summary><p>What was scarce? What was your next-best alternative? How would a different bus schedule or support network change your options?</p>${state.flags
+    `<span class="eyebrow">${heading}</span><h2 id="dialog-title">${state.completed ? "Two weeks. Many possible next steps." : "A snapshot of your next chapter."}</h2><p>You are 18. Your choices and the support around you shape what comes next.</p><div class="snapshot"><div><small>SPENDING / SAVINGS / UNPAID BALANCE</small><strong>${dollars(state.money)} / ${dollars(state.savings)} / ${dollars(state.debt)}</strong></div><div><small>HOME</small><strong>${state.housing}</strong></div><div><small>GETTING AROUND</small><strong>${state.transport}</strong></div><div><small>PLANNED INCOME / MONTHLY RENT</small><strong>${dollars(state.income)}/week expected income · ${dollars(state.rent)}/month rent</strong></div><div><small>CONNECTIONS & SKILLS</small><strong>Family support ${state.family} · Friendship ${state.friends} · Skills ${state.skill}</strong></div><div><small>PATHWAY</small><strong>${state.path} · open to change</strong></div></div>${bills.length ? `<div class="callout"><strong>Latest housing payment</strong><p>${dollars(-bill!.money)} from spending · ${dollars(-bill!.savings)} from savings · ${dollars(bill!.debt)} left unpaid.</p><p>That balance is an unpaid bill, not a new loan. There is no failure score.</p></div>` : `<p class="cost-line">Due Friday: ${dollars(housingDue(state))} for housing. Wages arrive only when you work.</p>`}<div class="actions">${state.ended && !state.completed ? '<button id="next-day" class="primary">Start the next day →</button>' : ""}${state.completed ? '<button id="week-reflect" class="secondary">Reflect on this week</button>' : ""}<button id="journal-back" class="secondary">${state.ended ? "Return to neighborhood" : "Keep exploring"}</button><button id="download" class="secondary">Download reflection</button></div><div class="daily-reflection"><strong>Today’s reflection</strong><p>${reflectionQuestion(state.day)}</p></div><h3>One choice to remember</h3>${state.decisions.length ? `<div class="callout"><strong>${state.decisions.at(-1)!.title}</strong><p>You gave up: ${state.decisions.at(-1)!.cost}</p></div>` : "<p>Your first decision will appear here.</p>"}<details><summary>Choices and money history (${state.decisions.length} choices)</summary><p>Recorded cash in: ${dollars(earned)} · cash out: ${dollars(spent)}. Transfers to savings are included in cash out, not total spending.</p>${state.decisions.map((d) => `<article class="journal-entry"><small>DAY ${d.day ?? 1}</small><strong>${d.title}</strong><p>${d.result}</p><small>You gave up: ${d.cost}</small></article>`).join("")}<h3>Money history</h3>${state.ledger.length ? state.ledger.map((e) => `<p class="ledger-row">Day ${e.day} · ${e.label}<br>Spending ${e.money >= 0 ? "+" : ""}${dollars(e.money)} · savings ${e.savings >= 0 ? "+" : ""}${dollars(e.savings)} · unpaid ${dollars(e.debt)}</p>`).join("") : "<p>Older saves begin their money history when continued in this version.</p>"}</details><details><summary>Class reflection · Day ${state.day}</summary><p>${reflectionQuestion(state.day)}</p><p>${state.decisions.filter((d) => (d.day ?? 1) === state.day).at(-1) ? `Consider today’s choice: ${state.decisions.filter((d) => (d.day ?? 1) === state.day).at(-1)!.title}` : "You can reflect on the choices you left open today, too."}</p>${state.flags
       .filter((f) => f.startsWith("Week reflection:"))
       .map((f) => `<p>${f}</p>`)
       .join(
@@ -360,7 +391,7 @@ function summary() {
   $("#restart").onclick = restart;
   $("#download").onclick = () => {
     const text = [
-      `The Butterfly Effect — Day ${state.day} of 7`,
+      `The Butterfly Effect — Day ${state.day} of 14`,
       `Money ${dollars(state.money)}; savings ${dollars(state.savings)}; unpaid ${dollars(state.debt)}`,
       `Housing: ${state.housing}; travel: ${state.transport}`,
       ...state.decisions.map(
@@ -368,7 +399,7 @@ function summary() {
           `Day ${d.day ?? 1}: ${d.title}\n${d.result}\nNext-best alternative: ${d.cost}`,
       ),
       ...state.flags.filter((f) => f.startsWith("Week reflection:")),
-      "Reflection: What was scarce? What did you give up? What support changed your options?",
+      `Day ${state.day} reflection: ${reflectionQuestion(state.day)}`,
     ].join("\n\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
@@ -415,7 +446,7 @@ $("#finish").onclick = () => {
     return;
   }
   open(
-    `<h2 id="dialog-title">Call it a day?</h2><p>You made ${dailyCount(state)} commitments today. You don’t have to do everything.</p>${state.day === 7 ? `<div class="callout"><strong>Housing due now: ${dollars(housingDue(state))}</strong><p>Spending money pays first, then savings. Any amount left becomes an unpaid bill.</p></div>` : "<p>Finish now, or keep exploring until 6 PM.</p>"}<button id="confirm-finish" class="primary">Finish and reflect</button><button id="keep-going" class="secondary">Keep exploring</button>`,
+    `<h2 id="dialog-title">Call it a day?</h2><p>You made ${dailyCount(state)} commitments today. You don’t have to do everything.</p>${state.day % 7 === 0 ? `<div class="callout"><strong>Housing due now: ${dollars(housingDue(state))}</strong><p>Spending money pays first, then savings. Any amount left becomes an unpaid bill.</p></div>` : "<p>Finish now, or keep exploring until 6 PM.</p>"}<button id="confirm-finish" class="primary">Finish and reflect</button><button id="keep-going" class="secondary">Keep exploring</button>`,
     "finish",
   );
   $("#confirm-finish").onclick = () => {

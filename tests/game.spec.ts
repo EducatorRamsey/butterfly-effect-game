@@ -105,7 +105,7 @@ test("complete connected chapter, narration, saves and restart", async ({
   await page.reload();
   await page.getByRole("button", { name: "Continue saved story" }).click();
   await expect(page.locator("#money")).toHaveText("$45");
-  await expect(page.locator("#count")).toHaveText("5 / 5 today");
+  await expect(page.locator("#count")).toHaveText("5 commitments today");
   await page.getByRole("button", { name: "Finish the day" }).click();
   await page.getByRole("button", { name: "Finish and reflect" }).click();
   await expect(page.getByText("DAY 1 · COMPLETE")).toBeVisible();
@@ -121,7 +121,7 @@ test("complete connected chapter, narration, saves and restart", async ({
     .click();
   await page.getByRole("button", { name: "Explore my neighborhood" }).click();
   await expect(page.locator("#money")).toHaveText("$480");
-  await expect(page.locator("#count")).toHaveText("0 / 5 today");
+  await expect(page.locator("#count")).toHaveText("0 commitments today");
   expect(errors).toEqual([]);
 });
 test("movement, collision, nearby keyboard interaction, map and touch", async ({

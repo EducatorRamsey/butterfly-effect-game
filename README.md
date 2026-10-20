@@ -1,6 +1,6 @@
 # The Butterfly Effect: The Cost of Every Choice
 
-A playable seven-day opening chapter of a narrative economics game for high school seniors. Explore an original, illustrated Albuquerque neighborhood in Phaser 3, make commitments with limited time and resources, and reflect on the next-best alternatives you gave up.
+A playable fourteen-day opening chapter of a narrative economics game for high school seniors. Explore an original, illustrated Albuquerque neighborhood in Phaser 3, make commitments with limited time and resources, and reflect on the next-best alternatives you gave up.
 
 ![The playable Juniper neighborhood](docs/neighborhood.png)
 
@@ -37,14 +37,29 @@ Walking costs five game minutes per fifteen seconds of movement. Reading dialogu
 
 - A title screen, four selectable starting interests, changeable pathway, accessible introduction, and five interactive locations.
 - Smooth accelerated movement, directional walking frames, building/plant collision, camera following, and keyboard, mouse, menu, and touch navigation.
-- Seven playable days with new conversations across all five locations. A calendar, daily commitments, paid work, shared equipment, a clinic appointment, limited project hours, groceries, savings transfers, and a Friday housing bill make choices carry forward.
+- Fourteen playable days with new conversations across all five locations. A calendar, paid work, interviews, career applications, shared equipment, clinic conflicts, groceries, and Friday housing bills make choices carry forward.
 - Training opens a carpool and a reserved Tuesday workshop. Helping Elena reduces the room deposit. Tuesday’s reduced bus service adds 90 minutes to each work or learning commitment for city-bus riders. A bike, carpool, or planned ride changes that trade-off. Time already spent cannot be recovered.
 - Short dialogue, clear time/money summaries, and optional **Tell me more** sections. Narration reads the current visible panel, including every choice and reason an option is unavailable. Expand a detail section before Listen to include it.
-- A reflection after three commitments, a second reflection at the end of the week, and a downloadable decision summary. This remains an **age-18 snapshot**, not the planned four-year life simulation. Existing first-chapter saves continue into the week without losing their resources or choices.
+- Different daily reflection prompts, checkpoints after three commitments and each week, and a downloadable decision summary. This remains an **age-18 snapshot**, not the planned four-year life simulation. Existing graduation-day and completed first-week saves continue without losing resources, choices, or earlier bill payments.
 
-Original scenery and character art are drawn in code. These are cohesive prototype assets designed to be replaceable; no commercial game assets are used. Monetary amounts and availability are illustrative classroom scenarios, not current financial or enrollment advice. Work pays immediately after each completed shift; accepting a schedule does not pay wages. Expected weekly income is a planning estimate. The housing deposit is separate from Friday’s bill: $125 for the shared room (a simplified four-week share of $500/month), or a $40 household contribution when living with family. Friday’s bill uses spending money, then savings. Any remaining amount becomes an unpaid housing balance, without interest or a failure score. The bill is charged once, including after reloads.
+Original scenery and character art are drawn in code. These are cohesive prototype assets designed to be replaceable; no commercial game assets are used. Monetary amounts and availability are illustrative classroom scenarios, not current financial or enrollment advice. Work pays immediately after each completed shift; accepting a schedule does not pay wages. Expected weekly income is a planning estimate. The housing deposit is separate from Friday’s bill: $125 for the shared room (a simplified four-week share of $500/month), or a $40 household contribution when living with family. Friday’s bill uses spending money, then savings. Any remaining amount becomes an unpaid housing balance, without interest or a failure score. Housing is charged once on each Friday (days 7 and 14), including after reloads. A later smaller-room option costs $350/month, modeled as $88/week, in exchange for less privacy.
 
-Temporary family/shared rides apply only to Tuesday; the previous travel plan returns the next morning. Grocery spending is a selected decision, not a hidden recurring deduction. This milestone does not simulate all living expenses, formal loans, or the consequences of a long-term overdue balance.
+Temporary family/shared rides apply only to Tuesday; the previous travel plan returns the next morning. Grocery spending is a selected decision, not a hidden recurring deduction. This milestone does not simulate all living expenses, formal loans, or the consequences of a long-term overdue balance. In week two, a player can pay down an unpaid balance.
+
+## What changed after classroom playtesting
+
+- Aunt Elena is introduced as the aunt you live with. Character name banners sit beside the characters.
+- Day 2 has a real work/advising conflict. The journal counts commitments without presenting every location as a checklist to finish.
+- Explore the **lowrider courtyard**, **community mural**, and **bosque trail corner** by walking, clicking, or using the map. Their stories and choices affect skills, parts, wellbeing, and relationships.
+- New stories have different daily pop-ups and weather notices. Events stay fixed on reload. Read **Week calendar · new updates** each morning to see the current bulletin.
+- Time with Alex builds a specific connection. At 2, a bike loan opens. Rest and connection also improve wellbeing; rested focus helps later learning. Bikes remain available to buy after the route change.
+- Groceries provide three packed meals in one hour for $20. Community pickup provides one meal in two hours, at no cash cost. Each meal can save $8 on a week-two shift. Neither route is a universal answer: cash, supply, and opening hours differ.
+- Housing includes research, viewings, privacy, maintenance coordination, trust, and a lower-rent option. Quiet space can shorten study; lower rent can mean less privacy.
+- Repair parts and minimum skill requirements create limits even with hours left. Earlier choices can open a paid repair, job trial, or apprenticeship application.
+
+Some days intentionally leave room for exploration, rest, and relationships. The objective is not to exhaust every hour or maximize one score.
+
+![Short dialogue with optional detail](docs/short-dialogue.png)
 
 ## Automated browser tests
 
@@ -56,7 +71,7 @@ npm test
 
 The config uses `/usr/bin/chromium` when installed, and otherwise uses Playwright’s downloaded Chromium. You can optionally set `CHROMIUM_PATH` to another Chrome/Chromium executable.
 
-The suite runs the actual game at 1440×1000 and Chromebook-sized 1366×768 viewports. It covers new/continued/restarted stories, all locations, linked decisions and arithmetic, deadlines, affordability, narration controls, speed, map navigation, movement, keyboard dialogue, reflection, ending, all seven days, legacy-save continuation, Friday settlement and shortfall handling, responsive layout, and browser/asset errors. See [validation notes](docs/VALIDATION.md) for the current run and limits.
+The suite runs the actual game at 1440×1000 and Chromebook-sized 1366×768 viewports. It covers new/continued/restarted stories, all locations, linked decisions and arithmetic, deadlines, affordability, narration controls, speed, map navigation, movement, keyboard dialogue, reflection, ending, both weeks, old-save continuation, Friday settlement and shortfall handling, discovery sites, daily events, packed meals, parts, friendship support, privacy, and changing reflections, responsive layout, and browser/asset errors. See [validation notes](docs/VALIDATION.md) for the current run and limits.
 
 ## Publish on GitHub Pages
 

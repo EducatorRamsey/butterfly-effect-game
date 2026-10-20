@@ -69,10 +69,10 @@ test("play all seven days with work, a reserved workshop, housing and two reflec
   await choose(page, "Apply for the shared room");
   expect((await state(page)).money).toBe(60);
   await advance(page);
-  await expect(page.locator("#day-label")).toContainText("Day 2 of 7");
-  await expect(page.locator("#count")).toHaveText("0 / 5 today");
+  await expect(page.locator("#day-label")).toContainText("Day 2 of 14");
+  await expect(page.locator("#count")).toHaveText("0 commitments today");
   await page.getByRole("button", { name: "Week calendar" }).click();
-  await expect(page.locator(".calendar-grid li")).toHaveCount(7);
+  await expect(page.locator(".calendar-grid li")).toHaveCount(14);
   await expect(
     page.getByText("Friday housing: $125.", { exact: false }),
   ).toBeVisible();
@@ -110,8 +110,8 @@ test("play all seven days with work, a reserved workshop, housing and two reflec
   await page
     .getByRole("button", { name: "Start today →", exact: true })
     .click();
-  await expect(page.locator("#day-label")).toContainText("Day 5 of 7");
-  await expect(page.locator("#count")).toHaveText("2 / 5 today");
+  await expect(page.locator("#day-label")).toContainText("Day 5 of 14");
+  await expect(page.locator("#count")).toHaveText("2 commitments today");
   await advance(page);
   await visit(page, "work");
   await choose(page, "Complete the neighborhood project");
@@ -137,7 +137,7 @@ test("play all seven days with work, a reserved workshop, housing and two reflec
   ).toBeVisible();
   const done = await state(page);
   expect(done.day).toBe(7);
-  expect(done.completed).toBe(true);
+  expect(done.completed).toBe(false);
   expect(done.money).toBe(152);
   expect(done.savings).toBe(150);
   expect(done.debt).toBe(0);
@@ -162,7 +162,7 @@ test("play all seven days with work, a reserved workshop, housing and two reflec
   expect((await state(page)).money).toBe(152);
   await expect(
     page.getByRole("button", { name: "Start the next day" }),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
 });
 
 test("bus service change creates a conflict that a late ride cannot undo", async ({

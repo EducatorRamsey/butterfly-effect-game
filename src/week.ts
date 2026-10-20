@@ -1,5 +1,8 @@
 import { DAYS, housingDue, type Choice, type Place, type State } from "./model";
 import type { Location } from "./story";
+import { balanceFirstWeek } from "./firstWeekBalance";
+import { secondWeekLocation, secondWeekPlans } from "./secondWeek";
+import { dailyEvent } from "./neighborhood";
 export const dayPlans = [
   {
     title: "Graduation weekend",
@@ -9,7 +12,8 @@ export const dayPlans = [
   {
     title: "Make a little room",
     note: "Set your schedule. Tomorrow brings new commitments.",
-    focus: "Plan work, learning, and travel before the week starts.",
+    focus:
+      "The adviser closes at 2 PM; the work-planning meeting takes 3 hours.",
   },
   {
     title: "Promises become plans",
@@ -36,16 +40,15 @@ export const dayPlans = [
     note: "Earn, connect, or prepare for next week.",
     focus: "Housing is due when you finish today. You can use savings.",
   },
+  ...secondWeekPlans,
 ];
 export function dayLabel(s: State) {
-  return `Day ${s.day} of 7 · ${DAYS[s.day - 1]}`;
+  return `Day ${s.day} of 14 · ${DAYS[(s.day - 1) % 7]}`;
 }
 export function busDelay(s: State, place: Place) {
-  return s.day === 4 &&
-    s.transport === "City bus" &&
-    (place === "work" || place === "college")
-    ? 90
-    : 0;
+  if (s.transport !== "City bus" || !["work", "college"].includes(place))
+    return 0;
+  return s.day === 4 ? 90 : s.day > 7 && dailyEvent(s).id === "rain" ? 30 : 0;
 }
 function choice(
   id: string,
@@ -75,9 +78,26 @@ const rest = (id: string) =>
     0,
     "Time to earn money or practice a skill.",
     "You protected time to recover. Your other plans remain open.",
+    { wellbeing: 2 },
   );
 export function weekLocation(base: Location, s: State): Location {
   if (s.day === 1) return base;
+  if (s.day > 7) {
+    const next = secondWeekLocation(base, s),
+      delay = busDelay(s, base.id);
+    return {
+      ...next,
+      choices: next.choices.map((v) =>
+        delay
+          ? {
+              ...v,
+              time: v.time + delay,
+              detail: `${v.detail} · +${delay}m bus wait included`,
+            }
+          : v,
+      ),
+    };
+  }
   const d = s.day;
   let text = "";
   let scarcity = "Time · Choose one commitment here today.";
@@ -623,13 +643,17 @@ export function weekLocation(base: Location, s: State): Location {
       ];
     }
   }
+  ({ text, scarcity, choices } = balanceFirstWeek(
+    { ...base, text, scarcity, choices },
+    s,
+  ));
   const delay = busDelay(s, base.id);
   choices = choices.map((c) =>
     delay
       ? {
           ...c,
           time: c.time + delay,
-          detail: `${c.detail} · +90m bus wait included`,
+          detail: `${c.detail} · +${delay}m bus wait included`,
         }
       : c,
   );
